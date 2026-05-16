@@ -74,27 +74,27 @@ end
 class Arqtos < Formula
   desc "Operating layer for specialised professional teams"
   homepage "https://github.com/arqtiqa/arqtos"
-  version "0.2.0"
+  version "0.3.0"
 
   if OS.mac?
     if Hardware::CPU.arm?
       url "https://github.com/arqtiqa/arqtos-cli/releases/download/v#{version}/arqtos_#{version}_darwin_arm64.tar.gz",
           using: GitHubPrivateRepositoryReleaseDownloadStrategy
-      sha256 "731d89b0dbe1089291eb7114fb47336998e4337c80121dc472cd1704799f6c7f"
+      sha256 "d0bfff11b518919676578f6e398607a66f11ed932361dfe085d8bcac5e9b724a"
     else
       url "https://github.com/arqtiqa/arqtos-cli/releases/download/v#{version}/arqtos_#{version}_darwin_amd64.tar.gz",
           using: GitHubPrivateRepositoryReleaseDownloadStrategy
-      sha256 "227741954cfed8fa9e2052d215aff0e377c0d82b715b5a40cd1bd264d406c6c9"
+      sha256 "44930c811c7c56bb78262e3ddbd82f5739bc3d0fe74f523722b3157bb070eb18"
     end
   elsif OS.linux?
     if Hardware::CPU.arm?
       url "https://github.com/arqtiqa/arqtos-cli/releases/download/v#{version}/arqtos_#{version}_linux_arm64.tar.gz",
           using: GitHubPrivateRepositoryReleaseDownloadStrategy
-      sha256 "f702c5cb9cfc861da2e0f6c47591f0f5e05eeb710057a13a0a416684a97bbe53"
+      sha256 "b27ab4b7d1ef1c97769e67432d9c3d3c03f6da9977eea590aab36070bb4555e0"
     else
       url "https://github.com/arqtiqa/arqtos-cli/releases/download/v#{version}/arqtos_#{version}_linux_amd64.tar.gz",
           using: GitHubPrivateRepositoryReleaseDownloadStrategy
-      sha256 "7a84815e5f9d413bfc2d95a444c05453623909ffde5705c864efc8a6db1672f6"
+      sha256 "011be734802c82106dbce6a52c79c1b448616f0e57d900b1a40f0cbe9c7bee7d"
     end
   end
 
@@ -119,5 +119,13 @@ class Arqtos < Formula
     index_help = shell_output("#{bin}/arqtos index regenerate --help")
     assert_match "regenerate", index_help
     assert_match "--check", index_help
+
+    # Acceptance (v0.3.0+): arqtos focus subcommand is wired + responds to --help.
+    # Smoke-tests the Story arqtos-cli#21 + #102 capabilities without requiring
+    # a populated ~/.arqtos and ~/Arqtos tree (which the test env won't have).
+    focus_help = shell_output("#{bin}/arqtos focus --help")
+    assert_match "focus", focus_help
+    assert_match "--dry-run", focus_help
+    assert_match "--emit-env", focus_help
   end
 end
