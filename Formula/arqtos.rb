@@ -74,27 +74,27 @@ end
 class Arqtos < Formula
   desc "Operating layer for specialised professional teams"
   homepage "https://github.com/arqtiqa/arqtos"
-  version "0.1.1"
+  version "0.2.0"
 
   if OS.mac?
     if Hardware::CPU.arm?
       url "https://github.com/arqtiqa/arqtos-cli/releases/download/v#{version}/arqtos_#{version}_darwin_arm64.tar.gz",
           using: GitHubPrivateRepositoryReleaseDownloadStrategy
-      sha256 "d6b7b1e28e3dc377feb3db86534a8f6f9d7361073acb141656883c182e61fd1a"
+      sha256 "731d89b0dbe1089291eb7114fb47336998e4337c80121dc472cd1704799f6c7f"
     else
       url "https://github.com/arqtiqa/arqtos-cli/releases/download/v#{version}/arqtos_#{version}_darwin_amd64.tar.gz",
           using: GitHubPrivateRepositoryReleaseDownloadStrategy
-      sha256 "907034d412029241edc1cc39bf7b292c4c933f35edc083ee48f363966983f524"
+      sha256 "227741954cfed8fa9e2052d215aff0e377c0d82b715b5a40cd1bd264d406c6c9"
     end
   elsif OS.linux?
     if Hardware::CPU.arm?
       url "https://github.com/arqtiqa/arqtos-cli/releases/download/v#{version}/arqtos_#{version}_linux_arm64.tar.gz",
           using: GitHubPrivateRepositoryReleaseDownloadStrategy
-      sha256 "858434c9f7e2fc84bc0dbc9a57789c04df8387368809c56be8b929ba1c7b74f8"
+      sha256 "f702c5cb9cfc861da2e0f6c47591f0f5e05eeb710057a13a0a416684a97bbe53"
     else
       url "https://github.com/arqtiqa/arqtos-cli/releases/download/v#{version}/arqtos_#{version}_linux_amd64.tar.gz",
           using: GitHubPrivateRepositoryReleaseDownloadStrategy
-      sha256 "a73a1bd46e66277a3c144baaba38addd0a7afdeff519295a2f9a5cb816ae3622"
+      sha256 "7a84815e5f9d413bfc2d95a444c05453623909ffde5705c864efc8a6db1672f6"
     end
   end
 
@@ -113,5 +113,11 @@ class Arqtos < Formula
     pack_list = shell_output("#{bin}/arqtos pack list")
     assert_match "daily-flow-pack", pack_list
     assert_match "go-builder-pack", pack_list
+
+    # Acceptance (v0.2.0+): arqtos index regenerate subcommand is wired + responds to --help.
+    # Smoke-tests the new Story #10 capability without requiring filesystem state.
+    index_help = shell_output("#{bin}/arqtos index regenerate --help")
+    assert_match "regenerate", index_help
+    assert_match "--check", index_help
   end
 end
