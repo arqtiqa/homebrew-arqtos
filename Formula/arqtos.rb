@@ -74,27 +74,27 @@ end
 class Arqtos < Formula
   desc "Operating layer for specialised professional teams"
   homepage "https://github.com/arqtiqa/arqtos"
-  version "0.3.0"
+  version "0.3.1"
 
   if OS.mac?
     if Hardware::CPU.arm?
       url "https://github.com/arqtiqa/arqtos-cli/releases/download/v#{version}/arqtos_#{version}_darwin_arm64.tar.gz",
           using: GitHubPrivateRepositoryReleaseDownloadStrategy
-      sha256 "d0bfff11b518919676578f6e398607a66f11ed932361dfe085d8bcac5e9b724a"
+      sha256 "6c6834e709c75ac07a4b823098835c9879b39eedc140914078ee9bb2a4b2631d"
     else
       url "https://github.com/arqtiqa/arqtos-cli/releases/download/v#{version}/arqtos_#{version}_darwin_amd64.tar.gz",
           using: GitHubPrivateRepositoryReleaseDownloadStrategy
-      sha256 "44930c811c7c56bb78262e3ddbd82f5739bc3d0fe74f523722b3157bb070eb18"
+      sha256 "266e9d7886844fc76e367b9c4ca14ae9f849943978ee96213f160bfe493c4f32"
     end
   elsif OS.linux?
     if Hardware::CPU.arm?
       url "https://github.com/arqtiqa/arqtos-cli/releases/download/v#{version}/arqtos_#{version}_linux_arm64.tar.gz",
           using: GitHubPrivateRepositoryReleaseDownloadStrategy
-      sha256 "b27ab4b7d1ef1c97769e67432d9c3d3c03f6da9977eea590aab36070bb4555e0"
+      sha256 "ff80c75ad6cf3a8ed51b801e8eed1ef018b5a3be1ac568e7f3c2dcbfbccf15c2"
     else
       url "https://github.com/arqtiqa/arqtos-cli/releases/download/v#{version}/arqtos_#{version}_linux_amd64.tar.gz",
           using: GitHubPrivateRepositoryReleaseDownloadStrategy
-      sha256 "011be734802c82106dbce6a52c79c1b448616f0e57d900b1a40f0cbe9c7bee7d"
+      sha256 "89ad302b47ad6d07b4924ebe20a032169aa0769eb57f364b498a3c6a8f9ee954"
     end
   end
 
@@ -127,5 +127,17 @@ class Arqtos < Formula
     assert_match "focus", focus_help
     assert_match "--dry-run", focus_help
     assert_match "--emit-env", focus_help
+
+    # Acceptance (v0.3.1+): the 6 Stories under Feature arqtiqa/arqtos#40 ship
+    # the full focus surface — --show-path / --exec / --status / --clear-overrides
+    # on the focus subcommand, plus a new `arqtos floe` parent for terminal-profile
+    # install. Smoke-test via --help only (no live filesystem state required).
+    assert_match "--show-path", focus_help
+    assert_match "--exec", focus_help
+    assert_match "--status", focus_help
+    assert_match "--clear-overrides", focus_help
+
+    floe_help = shell_output("#{bin}/arqtos floe --help")
+    assert_match "install-terminal-profiles", floe_help
   end
 end
