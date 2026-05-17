@@ -76,11 +76,12 @@ class Arqtos < Formula
   homepage "https://github.com/arqtiqa/arqtos"
   version "0.3.3"
 
-  # The embedded Arqtos Dark/Light Terminal.app profiles reference JetBrains
-  # Mono via a base64 NSFont blob; floes without the font installed fall back
-  # to Menlo at first activation. Declaring the cask as a dependency makes
-  # fresh `brew install arqtos` floes pull the font automatically.
-  depends_on cask: "font-jetbrains-mono"
+  # Homebrew formulas cannot directly depend on casks (`depends_on cask:` is
+  # rejected as "Unsupported special dependency"). The embedded Arqtos Dark/
+  # Light Terminal.app profiles reference JetBrains Mono via a base64 NSFont
+  # blob; floes without the font fall back to Menlo at first activation.
+  # Operators install the font via a separate `brew install --cask` step;
+  # caveats below surfaces the hint at install time.
 
   if OS.mac?
     if Hardware::CPU.arm?
@@ -106,6 +107,20 @@ class Arqtos < Formula
 
   def install
     bin.install "arqtos"
+  end
+
+  def caveats
+    <<~EOS
+      The Arqtos Dark and Arqtos Light Terminal.app profiles render with
+      JetBrains Mono. To install the font on this floe (one-time, separate
+      from this formula since Homebrew doesn't support cask deps from
+      formulas):
+
+        brew install --cask font-jetbrains-mono
+
+      Without the font installed, Terminal.app falls back to Menlo at first
+      `arqtos focus <igloo>` activation; everything else works.
+    EOS
   end
 
   test do
