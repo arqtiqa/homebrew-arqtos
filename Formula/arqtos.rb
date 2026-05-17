@@ -74,27 +74,33 @@ end
 class Arqtos < Formula
   desc "Operating layer for specialised professional teams"
   homepage "https://github.com/arqtiqa/arqtos"
-  version "0.3.2"
+  version "0.3.3"
+
+  # The embedded Arqtos Dark/Light Terminal.app profiles reference JetBrains
+  # Mono via a base64 NSFont blob; floes without the font installed fall back
+  # to Menlo at first activation. Declaring the cask as a dependency makes
+  # fresh `brew install arqtos` floes pull the font automatically.
+  depends_on cask: "font-jetbrains-mono"
 
   if OS.mac?
     if Hardware::CPU.arm?
       url "https://github.com/arqtiqa/arqtos-cli/releases/download/v#{version}/arqtos_#{version}_darwin_arm64.tar.gz",
           using: GitHubPrivateRepositoryReleaseDownloadStrategy
-      sha256 "51e465258f4cfe62cde2e8368e411e686a81f9cd759bc1c3d0295d6c0fc4db81"
+      sha256 "e75acf1263643763b0b9b38651cbc19bccd27286cd049b11e333751924927ce3"
     else
       url "https://github.com/arqtiqa/arqtos-cli/releases/download/v#{version}/arqtos_#{version}_darwin_amd64.tar.gz",
           using: GitHubPrivateRepositoryReleaseDownloadStrategy
-      sha256 "c70f512f8d7fa4015e20b51634643b1d894814378613f96b60f04810312a033f"
+      sha256 "b3186a30bdc61cde62b85b81bb858133cd0af23ac434bd8fe7f99beeb4def595"
     end
   elsif OS.linux?
     if Hardware::CPU.arm?
       url "https://github.com/arqtiqa/arqtos-cli/releases/download/v#{version}/arqtos_#{version}_linux_arm64.tar.gz",
           using: GitHubPrivateRepositoryReleaseDownloadStrategy
-      sha256 "dd89827cdb90c1cdf2c949c2447127687c3d73a10f12349d540c80511d0c7941"
+      sha256 "98b9aa32cbff388541fdbec31087a9980717a52e0a8505ad054c6132b033682d"
     else
       url "https://github.com/arqtiqa/arqtos-cli/releases/download/v#{version}/arqtos_#{version}_linux_amd64.tar.gz",
           using: GitHubPrivateRepositoryReleaseDownloadStrategy
-      sha256 "de3ce7381a7c160d729478347a265c010e8978ad49ccf748d071525fefee5c06"
+      sha256 "97352988c5e2b6f5d87d2b51a63425c863e9b3eb4bee91577f5c273d1c1fd942"
     end
   end
 
