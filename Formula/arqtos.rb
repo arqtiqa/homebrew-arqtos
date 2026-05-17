@@ -74,7 +74,7 @@ end
 class Arqtos < Formula
   desc "Operating layer for specialised professional teams"
   homepage "https://github.com/arqtiqa/arqtos"
-  version "0.3.8"
+  version "0.3.9"
 
   # Homebrew formulas cannot directly depend on casks (`depends_on cask:` is
   # rejected as "Unsupported special dependency"). The embedded Arqtos Dark/
@@ -87,21 +87,21 @@ class Arqtos < Formula
     if Hardware::CPU.arm?
       url "https://github.com/arqtiqa/arqtos-cli/releases/download/v#{version}/arqtos_#{version}_darwin_arm64.tar.gz",
           using: GitHubPrivateRepositoryReleaseDownloadStrategy
-      sha256 "654eab5a0e128dce6472388d0d3af276911904278a74204655c367536c57aa9e"
+      sha256 "3ba5f746841d737a4098d5f392c526af3518b7227fd580b93083975865c2e3cd"
     else
       url "https://github.com/arqtiqa/arqtos-cli/releases/download/v#{version}/arqtos_#{version}_darwin_amd64.tar.gz",
           using: GitHubPrivateRepositoryReleaseDownloadStrategy
-      sha256 "1a739340e130926cd3e8fd86e46e26a6d722f789ae3319639df10baaa9793676"
+      sha256 "7155f421dedd6d60be9e23441179cdc5db3dc0bfb0bf27dc49612042c73d3d59"
     end
   elsif OS.linux?
     if Hardware::CPU.arm?
       url "https://github.com/arqtiqa/arqtos-cli/releases/download/v#{version}/arqtos_#{version}_linux_arm64.tar.gz",
           using: GitHubPrivateRepositoryReleaseDownloadStrategy
-      sha256 "6bea57109e0ef3d4ed59b0f28dda4be9df1e59fa4b71eacbc2c61f7d5d962e54"
+      sha256 "b596b14149555291955b6785f35d4914688373bdde99f2bdd33b2c21fee79691"
     else
       url "https://github.com/arqtiqa/arqtos-cli/releases/download/v#{version}/arqtos_#{version}_linux_amd64.tar.gz",
           using: GitHubPrivateRepositoryReleaseDownloadStrategy
-      sha256 "4bc5c50500af102833383f475753a96098109e6ab1af0960a4d1a5bb69885e49"
+      sha256 "00da26b67412f29e0bcbc2584973b00906818ee63fd110d07f35bffef55d03f2"
     end
   end
 
