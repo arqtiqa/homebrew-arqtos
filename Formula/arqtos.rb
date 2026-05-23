@@ -74,7 +74,7 @@ end
 class Arqtos < Formula
   desc "Operating layer for specialised professional teams"
   homepage "https://github.com/arqtiqa/arqtos"
-  version "0.3.31"
+  version "0.3.32"
 
   # Homebrew formulas cannot directly depend on casks (`depends_on cask:` is
   # rejected as "Unsupported special dependency"). The embedded Arqtos Dark/
@@ -87,21 +87,21 @@ class Arqtos < Formula
     if Hardware::CPU.arm?
       url "https://github.com/arqtiqa/arqtos-cli/releases/download/v#{version}/arqtos_#{version}_darwin_arm64.tar.gz",
           using: GitHubPrivateRepositoryReleaseDownloadStrategy
-      sha256 "e7ff6b0c533780b1fcc8a008934e7c6ebbc75ddde24bf0bd5d8198c5568bb1b2"
+      sha256 "3d7074f1c48092740a99b6aa18b19cc8bca260f7d66223f52f42f999248c474c"
     else
       url "https://github.com/arqtiqa/arqtos-cli/releases/download/v#{version}/arqtos_#{version}_darwin_amd64.tar.gz",
           using: GitHubPrivateRepositoryReleaseDownloadStrategy
-      sha256 "7f36f0e5729048c06790e8b91b7e78202b0e21b0d79c6e147f84f4380ea818c4"
+      sha256 "bd0176a8a248c9efed270474486e1322fb8f12657747f8f8a7062af05b2734c8"
     end
   elsif OS.linux?
     if Hardware::CPU.arm?
       url "https://github.com/arqtiqa/arqtos-cli/releases/download/v#{version}/arqtos_#{version}_linux_arm64.tar.gz",
           using: GitHubPrivateRepositoryReleaseDownloadStrategy
-      sha256 "405ecac140c400b2b0cff68212841dba2fda935bebc2784cc1822d9023f7821d"
+      sha256 "f2eafd4f0541fe6965f1f238acf3a354d6f3d30e3e0a9786da943706c30bf675"
     else
       url "https://github.com/arqtiqa/arqtos-cli/releases/download/v#{version}/arqtos_#{version}_linux_amd64.tar.gz",
           using: GitHubPrivateRepositoryReleaseDownloadStrategy
-      sha256 "eb8001a0767210d7bbdb518fce4081f882100b0335f609d790157f4785f91040"
+      sha256 "fec1bf785c3a9f5628b6098542406601a21600af9b45d503294d0ee4e43925ee"
     end
   end
 
@@ -160,5 +160,14 @@ class Arqtos < Formula
 
     floe_help = shell_output("#{bin}/arqtos floe --help")
     assert_match "install-terminal-profiles", floe_help
+
+    # Acceptance (v0.3.32+): the MCP-bridge plugin surface from Feature
+    # arqtiqa/arqtos-cli#230 — `arqtos plugin {install, list, uninstall,
+    # show}` is wired. Smoke-test the parent --help.
+    plugin_help = shell_output("#{bin}/arqtos plugin --help")
+    assert_match "install", plugin_help
+    assert_match "list", plugin_help
+    assert_match "uninstall", plugin_help
+    assert_match "show", plugin_help
   end
 end
