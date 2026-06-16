@@ -1,43 +1,26 @@
-# Private-content denylist — patterns that must never reach an arqtiqa/* repo.
+# Private-content denylist — PUBLIC-TAP SUBSET.
 # Per AQS-7 / private-content-firewall decision (2026-05-05).
+#
+# This repo (arqtiqa/homebrew-arqtos) is PUBLIC. The canonical denylist in the
+# private source (arqtiqa/arqtos:scripts/private-content-denylist.txt) also
+# matches the operator's real name, personal email, affiliated org domains, and
+# machine-hostname scheme. Those literal patterns are DELIBERATELY OMITTED here:
+# committing them to a public repo would itself leak the very identifiers they
+# guard. This public copy keeps only the generic secret / private-network
+# shapes, which are non-identifying and safe to expose.
+#
+# The omitted identifier patterns stay enforced on the private arqtiqa/* repos
+# by the canonical denylist. The high-value leak vector for a formula + README
+# tap is an accidentally-committed token — caught by the patterns below.
 #
 # Format: one POSIX extended regex per line. Lines starting with `#` and blank
 # lines are ignored. No inline comments — put commentary on its own line.
 #
-# Both `scripts/check-private-content.sh` (CI / pre-commit hook gate) and a
-# future GitHub Actions workflow read this file. Add patterns as new leak
-# vectors are discovered; remove only after confirming the matched content
-# was a false positive.
-#
-# Refining a noisy pattern: prefer making it more specific over removing it.
-# E.g. add `\b` word boundaries, anchor the email at `@`, or scope to the
-# leak position (gitconfig `email = ` line vs free text).
-
-# ---- Personal identity (this operator) ----
-
-# Real name — case-insensitive.
-(?i)\b(mariusz|wiercinski)\b
-
-# Personal email — exact.
-mw4dev@gmail\.com
-
-# ---- Real org / venture domains for this operator ----
-# Ventures the operator is affiliated with; surfacing them in arqtiqa/*
-# leaks org affiliation. Match the @ to keep noise low.
-@(k11\.vc|kinguin\.net|viktorsway\.com|sylviaworld\.com)\b
-
-# ---- Machine identifiers ----
-
-# Mac hostnames following the operator's naming scheme: MW-(Mac Studio /
-# MacBook / Mac Mini)-<chip><suffix>. Generic "MacBook" brand mentions
-# are intentionally not flagged — the MW- prefix above catches real
-# hostnames; flagging "MacBook" alone gave too many false positives in
-# discussion / spec text.
-\bMW-(MS|MB|MM)-[A-Z0-9-]+\b
+# Read by `scripts/check-private-content.sh` (CI / pre-commit hook gate).
 
 # ---- Private network ranges ----
-# Catches literal IPs from RFC1918 home/lan ranges. Uses anchored octets
-# to avoid matching version numbers like "10.0.1" in random text.
+# Literal IPs from RFC1918 home/lan ranges. Anchored octets avoid matching
+# version numbers like "10.0.1" in random text.
 \b(192\.168\.|10\.0\.|10\.1\.|172\.(1[6-9]|2[0-9]|3[0-1])\.)[0-9]{1,3}\.[0-9]{1,3}\b
 
 # ---- Tokens / secrets ----
