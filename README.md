@@ -2,13 +2,15 @@
 
 Homebrew tap for the **arqtos** toolkit — the operating layer for specialised
 professional teams. The tap is public and `brew install` needs **no GitHub
-token** and no per-machine auth.
+token** — just a one-time `brew trust` for the tap (a Homebrew 6.0+ requirement
+for *any* third-party tap; no credentials involved).
 
 ## Quick start
 
 ```bash
-# 1. Tap + install (no auth required)
+# 1. Tap, trust, install — no GitHub token needed
 brew tap arqtiqa/arqtos
+brew trust arqtiqa/arqtos       # one-time: Homebrew 6.0+ requires trusting any third-party tap
 brew install arqtos
 
 # 2. Verify
@@ -54,6 +56,8 @@ activation; everything else works.
 
 `arqtos` is closed-source — the source repo is private. The **compiled binary**
 is published as a public release asset on this tap, so installs and upgrades
-need no GitHub token. The binary is inert without an arqtos environment
+need no GitHub token. (Homebrew 6.0+ separately requires a one-time
+`brew trust arqtiqa/arqtos` for *any* non-official tap — a Homebrew policy, not
+an arqtos credential step.) The binary is inert without an arqtos environment
 (config + bergs); configuration and secrets are never distributed here —
 the formula and the binary are all this tap carries.
