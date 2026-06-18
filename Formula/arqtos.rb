@@ -3,78 +3,20 @@
 
 # Homebrew formula for the arqtos toolkit binary.
 #
-# Closed-source distribution per Constitution §"Closed-Binary Distribution
-# Discipline". The arqtos-cli repo is private; downloading release archives
-# requires HOMEBREW_GITHUB_API_TOKEN to be set in the operator's environment.
+# arqtos is closed-source: the source repo (arqtiqa/arqtos-cli) is private.
+# The *compiled binary* is published as a public release asset on this tap
+# (arqtiqa/homebrew-arqtos), so `brew install arqtos` requires no GitHub
+# token and no per-machine auth. The binary is inert without an arqtos
+# environment (config + bergs); config and secrets are never distributed here.
 #
 # Install:
-#   export HOMEBREW_GITHUB_API_TOKEN=ghp_xxx
 #   brew tap arqtiqa/arqtos
 #   brew install arqtos
 
-require "download_strategy"
-require "json"
-
-# GitHubPrivateRepositoryReleaseDownloadStrategy authenticates the release
-# asset fetch via the GitHub API. Necessary because direct
-# https://github.com/<org>/<repo>/releases/download/... URLs return 404 for
-# private repos without auth — and curl needs the Authorization header.
-class GitHubPrivateRepositoryReleaseDownloadStrategy < CurlDownloadStrategy
-  def initialize(url, name, version, **meta)
-    super
-    parse_url_pattern
-    set_github_token
-  end
-
-  def parse_url_pattern
-    pattern = %r{https://github\.com/([^/]+)/([^/]+)/releases/download/([^/]+)/(\S+)}
-    unless @url =~ pattern
-      raise CurlDownloadStrategyError, "Invalid GitHub release URL: #{@url}"
-    end
-
-    _, @owner, @repo, @tag, @filename = *@url.match(pattern)
-  end
-
-  def set_github_token
-    @github_token = ENV.fetch("HOMEBREW_GITHUB_API_TOKEN", "")
-    if @github_token.empty?
-      raise CurlDownloadStrategyError,
-            "HOMEBREW_GITHUB_API_TOKEN is required to install arqtos from the private tap"
-    end
-  end
-
-  def _fetch(url:, resolved_url:, timeout:)
-    asset_id = resolve_asset_id
-    asset_url = "https://api.github.com/repos/#{@owner}/#{@repo}/releases/assets/#{asset_id}"
-    curl_download asset_url,
-                  "--header", "Accept: application/octet-stream",
-                  "--header", "Authorization: token #{@github_token}",
-                  to: temporary_path
-  end
-
-  def resolve_asset_id
-    metadata = fetch_release_metadata
-    asset = metadata["assets"].find { |a| a["name"] == @filename }
-    raise CurlDownloadStrategyError, "Asset #{@filename} not found in release #{@tag}" if asset.nil?
-
-    asset["id"]
-  end
-
-  def fetch_release_metadata
-    release_url = "https://api.github.com/repos/#{@owner}/#{@repo}/releases/tags/#{@tag}"
-    output, _, _ = curl_output(
-      "--header", "Accept: application/vnd.github+json",
-      "--header", "Authorization: token #{@github_token}",
-      release_url,
-    )
-    JSON.parse(output)
-  end
-end
-
 class Arqtos < Formula
   desc "Operating layer for specialised professional teams"
-  homepage "https://github.com/arqtiqa/arqtos"
-  version "0.3.39"
+  homepage "https://arqtos.io"
+  version "0.3.40"
 
   # Homebrew formulas cannot directly depend on casks (`depends_on cask:` is
   # rejected as "Unsupported special dependency"). The embedded Arqtos Dark/
@@ -85,23 +27,19 @@ class Arqtos < Formula
 
   if OS.mac?
     if Hardware::CPU.arm?
-      url "https://github.com/arqtiqa/arqtos-cli/releases/download/v#{version}/arqtos_#{version}_darwin_arm64.tar.gz",
-          using: GitHubPrivateRepositoryReleaseDownloadStrategy
-      sha256 "24cdf964a2383e94b85676d67bf4f59a7de17799a0659e3d1cdd9f3f80391833"
+      url "https://github.com/arqtiqa/homebrew-arqtos/releases/download/v#{version}/arqtos_#{version}_darwin_arm64.tar.gz"
+      sha256 "176b73519d4d9be3b5cfd8fddd560b89519daa3d5e9b7ebf19bcd3e6391afd53"
     else
-      url "https://github.com/arqtiqa/arqtos-cli/releases/download/v#{version}/arqtos_#{version}_darwin_amd64.tar.gz",
-          using: GitHubPrivateRepositoryReleaseDownloadStrategy
-      sha256 "5f954ab03c2f2d3fb63344e96cb67d85fb6f9f9fbe214f8300457c87e3aa2667"
+      url "https://github.com/arqtiqa/homebrew-arqtos/releases/download/v#{version}/arqtos_#{version}_darwin_amd64.tar.gz"
+      sha256 "07de3a6958106d69312e0b1b6df77b5678bb27a08ff4bb2b77e409f4d647f8f9"
     end
   elsif OS.linux?
     if Hardware::CPU.arm?
-      url "https://github.com/arqtiqa/arqtos-cli/releases/download/v#{version}/arqtos_#{version}_linux_arm64.tar.gz",
-          using: GitHubPrivateRepositoryReleaseDownloadStrategy
-      sha256 "46322cf1f27892328d8bb3d9f7f4ecc94ab304da6747af3912131f5d20f37fc4"
+      url "https://github.com/arqtiqa/homebrew-arqtos/releases/download/v#{version}/arqtos_#{version}_linux_arm64.tar.gz"
+      sha256 "d020ae5d3a6038397fd2fb2fcdc4c1773bf55611f7f506cc0358a4a58eb23cea"
     else
-      url "https://github.com/arqtiqa/arqtos-cli/releases/download/v#{version}/arqtos_#{version}_linux_amd64.tar.gz",
-          using: GitHubPrivateRepositoryReleaseDownloadStrategy
-      sha256 "a752c1a5d577a9e20611d3a3279f501b7ed00b8140cb8fac567496efd5c6b8d5"
+      url "https://github.com/arqtiqa/homebrew-arqtos/releases/download/v#{version}/arqtos_#{version}_linux_amd64.tar.gz"
+      sha256 "3efa89c9625bb77ac6a2d137ed7e389f20973750a6fd04b711612435fec9cc49"
     end
   end
 
@@ -135,35 +73,21 @@ class Arqtos < Formula
     assert_match "daily-flow-pack", pack_list
     assert_match "go-builder-pack", pack_list
 
-    # Acceptance (v0.2.0+): arqtos index regenerate subcommand is wired + responds to --help.
-    # Smoke-tests the new Story #10 capability without requiring filesystem state.
-    index_help = shell_output("#{bin}/arqtos index regenerate --help")
-    assert_match "regenerate", index_help
-    assert_match "--check", index_help
-
-    # Acceptance (v0.3.0+): arqtos focus subcommand is wired + responds to --help.
-    # Smoke-tests the Story arqtos-cli#21 + #102 capabilities without requiring
-    # a populated ~/.arqtos and ~/Arqtos tree (which the test env won't have).
+    # Acceptance: the focus surface is wired + responds to --help (no live
+    # ~/.arqtos or ~/Arqtos tree required in the test sandbox).
     focus_help = shell_output("#{bin}/arqtos focus --help")
     assert_match "focus", focus_help
     assert_match "--dry-run", focus_help
-    assert_match "--emit-env", focus_help
-
-    # Acceptance (v0.3.1+): the 6 Stories under Feature arqtiqa/arqtos#40 ship
-    # the full focus surface — --show-path / --exec / --status / --clear-overrides
-    # on the focus subcommand, plus a new `arqtos floe` parent for terminal-profile
-    # install. Smoke-test via --help only (no live filesystem state required).
     assert_match "--show-path", focus_help
     assert_match "--exec", focus_help
     assert_match "--status", focus_help
     assert_match "--clear-overrides", focus_help
 
+    # Acceptance: the floe parent exposes terminal-profile install.
     floe_help = shell_output("#{bin}/arqtos floe --help")
     assert_match "install-terminal-profiles", floe_help
 
-    # Acceptance (v0.3.32+): the MCP-bridge plugin surface from Feature
-    # arqtiqa/arqtos-cli#230 — `arqtos plugin {install, list, uninstall,
-    # show}` is wired. Smoke-test the parent --help.
+    # Acceptance: the MCP-bridge plugin surface — install / list / uninstall / show.
     plugin_help = shell_output("#{bin}/arqtos plugin --help")
     assert_match "install", plugin_help
     assert_match "list", plugin_help

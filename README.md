@@ -1,24 +1,36 @@
 # homebrew-arqtos
 
-Homebrew tap for the **arqtos** toolkit binary.
+Homebrew tap for the **arqtos** toolkit — the operating layer for specialised
+professional teams. The tap is public and `brew install` needs **no GitHub
+token** — just a one-time `brew trust` for the tap (a Homebrew 6.0+ requirement
+for *any* third-party tap; no credentials involved).
 
-## Install
-
-`arqtos` is distributed via private GitHub Releases. Installation requires a GitHub Personal Access Token with `repo` scope.
+## Quick start
 
 ```bash
-# 1. Set the token (one-time; or export from your secrets manager)
-export HOMEBREW_GITHUB_API_TOKEN=ghp_xxx
-
-# 2. Tap + install
+# 1. Tap, trust, install — no GitHub token needed
 brew tap arqtiqa/arqtos
+brew trust arqtiqa/arqtos       # one-time: Homebrew 6.0+ requires trusting any third-party tap
 brew install arqtos
 
-# 3. Verify
+# 2. Verify
 arqtos version
+
+# 3. Bootstrap this floe — creates ~/Arqtos, seeds operator.yml + floe.yml
+arqtos init --operator-name "<your name>" --operator-role human --floe-class station
+#    joining an existing org?  add:  --join-org <org-slug>
+
+# 4. Register the floe's identity
+arqtos floe register
+
+# 5. Import the bergs you can access, then focus an igloo
+arqtos igloo new --import-existing <gh-org>/<berg-repo>
+arqtos focus <igloo>
 ```
 
-The formula uses an inline `GitHubPrivateRepositoryReleaseDownloadStrategy` that resolves the release asset via the GitHub API + `Authorization: token` header — necessary because direct release URLs return 404 on private repos without auth.
+`arqtos focus <igloo>` activates the context: it resolves the config cascade,
+switches the Terminal.app profile, and wires the MCP gateway for Claude Code.
+Run `arqtos doctor` any time to preflight a floe.
 
 ## Upgrade
 
@@ -27,15 +39,25 @@ brew update
 brew upgrade arqtos
 ```
 
-## Status
+## Terminal font (optional)
 
-| Channel | Version |
-|---|---|
-| stable | tracked in `Formula/arqtos.rb` |
+The bundled Arqtos Dark / Light Terminal.app profiles render with JetBrains
+Mono (Homebrew can't pull a cask as a formula dependency, so it's a separate
+one-time step):
 
-Bumps land when a new tagged release ships in the binary source repo. The formula's `version` + `sha256` values match the matching release's `checksums.txt`.
+```bash
+brew install --cask font-jetbrains-mono
+```
 
-## See also
+Without the font, Terminal.app falls back to Menlo at first `arqtos focus`
+activation; everything else works.
 
-- [`arqtiqa/arqtos-cli`](https://github.com/arqtiqa/arqtos-cli) — binary source (private; access via PAT)
-- [`arqtiqa/arqtos-skills`](https://github.com/arqtiqa/arqtos-skills) — public skill + pack marketplace consumed by arqtos at runtime
+## How distribution works
+
+`arqtos` is closed-source — the source repo is private. The **compiled binary**
+is published as a public release asset on this tap, so installs and upgrades
+need no GitHub token. (Homebrew 6.0+ separately requires a one-time
+`brew trust arqtiqa/arqtos` for *any* non-official tap — a Homebrew policy, not
+an arqtos credential step.) The binary is inert without an arqtos environment
+(config + bergs); configuration and secrets are never distributed here —
+the formula and the binary are all this tap carries.
