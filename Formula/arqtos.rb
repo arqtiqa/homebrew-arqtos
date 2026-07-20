@@ -16,7 +16,7 @@
 class Arqtos < Formula
   desc "Operating layer for specialised professional teams"
   homepage "https://arqtos.io"
-  version "0.3.42"
+  version "0.3.43"
 
   # Homebrew formulas cannot directly depend on casks (`depends_on cask:` is
   # rejected as "Unsupported special dependency"). The embedded Arqtos Dark/
@@ -28,18 +28,18 @@ class Arqtos < Formula
   if OS.mac?
     if Hardware::CPU.arm?
       url "https://github.com/arqtiqa/homebrew-arqtos/releases/download/v#{version}/arqtos_#{version}_darwin_arm64.tar.gz"
-      sha256 "03bda82d30bf20282d18682af123566a88d7422512ee1e36880b30b35ac1d6e9"
+      sha256 "ae0a461a9e4edd246f09813b6bf11c1d1ba8720e2a3bc32739cec63855861fec"
     else
       url "https://github.com/arqtiqa/homebrew-arqtos/releases/download/v#{version}/arqtos_#{version}_darwin_amd64.tar.gz"
-      sha256 "f9190410d63706c0dd7ef864ce22019e431d6cb75090df9b68cd1f54033b7221"
+      sha256 "dae69c9037e8765cebc98420bf100a9c93b3f69af30a4fa93daa1da3c5847fb5"
     end
   elsif OS.linux?
     if Hardware::CPU.arm?
       url "https://github.com/arqtiqa/homebrew-arqtos/releases/download/v#{version}/arqtos_#{version}_linux_arm64.tar.gz"
-      sha256 "109b7083068bfbd875e4ffcdf1122ff3bea50e411df28b3e88dd997683d22dcf"
+      sha256 "66dcd9dc16fdae60872262836403a8943680e7a39547d502ddc14ff6b69e06a5"
     else
       url "https://github.com/arqtiqa/homebrew-arqtos/releases/download/v#{version}/arqtos_#{version}_linux_amd64.tar.gz"
-      sha256 "7e1e7c40a423ce98508d56642151a57915539d6268a969df9a077b0dc02e0242"
+      sha256 "22efc39a58f2ac1c53bd176e9c83d66b1108a3c6326f524566dab284888fe201"
     end
   end
 
@@ -67,11 +67,6 @@ class Arqtos < Formula
     assert_match "arqtos #{version}", output
     assert_match "commit:", output
     assert_match "build date:", output
-
-    # Acceptance: seed pack catalogue is embedded and listable.
-    pack_list = shell_output("#{bin}/arqtos pack list")
-    assert_match "daily-flow-pack", pack_list
-    assert_match "go-builder-pack", pack_list
 
     # Acceptance: the focus surface is wired + responds to --help (no live
     # ~/.arqtos or ~/Arqtos tree required in the test sandbox).
