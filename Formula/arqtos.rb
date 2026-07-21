@@ -47,6 +47,18 @@ class Arqtos < Formula
     bin.install "arqtos", "arqtosd"
   end
 
+  # Homebrew-managed reconciler (arqtiqa/arqtos-cli#773): `brew services start
+  # arqtos` runs the resident berg reconciler, and `brew upgrade` auto-restarts
+  # it onto the new binary. The daemon self-resolves the floe + resolves `op` by
+  # absolute path (cli#753), so no special env is needed here.
+  service do
+    run [opt_bin/"arqtos", "reconciler", "run"]
+    keep_alive true
+    run_at_load true
+    log_path "#{ENV["HOME"]}/Library/Logs/arqtos/sync-engine.log"
+    error_log_path "#{ENV["HOME"]}/Library/Logs/arqtos/sync-engine.log"
+  end
+
   def caveats
     <<~EOS
       The Arqtos Dark and Arqtos Light Terminal.app profiles render with
