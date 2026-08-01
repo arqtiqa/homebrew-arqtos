@@ -1,5 +1,5 @@
 # Private-content denylist — PUBLIC-TAP SUBSET.
-# Per AQS-7 / private-content-firewall decision (2026-05-05).
+# Per the private-content firewall / private-content-firewall decision (2026-05-05).
 #
 # This repo (arqtiqa/homebrew-arqtos) is PUBLIC. The canonical denylist in the
 # private source (arqtiqa/arqtos:scripts/private-content-denylist.txt) also
