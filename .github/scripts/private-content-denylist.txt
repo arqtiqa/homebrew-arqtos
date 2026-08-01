@@ -25,3 +25,14 @@ gho_[A-Za-z0-9]{36,}
 github_pat_[A-Za-z0-9_]{82,}
 lin_api_[A-Za-z0-9]{40,}
 op://[A-Za-z0-9_-]+/[A-Za-z0-9_-]+
+
+# Added 2026-08-01 (arqtos-cli#1078): secret-MATERIAL shapes the Go strict
+# tier was missing — it caught GitHub PATs while missing AWS access keys and
+# PEM private key blocks entirely. Credential FORMATS, so they belong in
+# every list including the public ones; the audience split is about IDENTITY
+# patterns, not credential shapes.
+ghu_[A-Za-z0-9]{36,}
+ghs_[A-Za-z0-9]{36,}
+ghr_[A-Za-z0-9]{36,}
+\bAKIA[0-9A-Z]{16}\b
+-----BEGIN [A-Z ]*PRIVATE KEY-----

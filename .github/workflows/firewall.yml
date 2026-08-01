@@ -24,7 +24,7 @@ jobs:
         # a compromised gate does not break the build, it returns a GREEN CHECK on
         # a repo whose scan is no longer running. Silent-clean is the failure mode
         # the whole firewall exists to prevent. Bump deliberately, reading the diff.
-        uses: arqtiqa/arqtos-actions/.github/actions/firewall@687edf5f1c5805d871eb7f5c088a7712b1f484ec  # v1
+        uses: arqtiqa/arqtos-actions/.github/actions/firewall@fbab466a5c1a7607865f9a824ac16726765cd073  # v1
         with:
           # ⚠️ The denylist stays HERE and is passed in. The shared action ships
           # none: a denylist is a list of the things it protects, so a copy in a
