@@ -16,7 +16,7 @@ jobs:
   firewall:
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v5
+      - uses: actions/checkout@v7
 
       - name: Scan tracked files against denylist
         # ⚠️ SHA-pinned, unlike every other shared action here, which use @v1.
