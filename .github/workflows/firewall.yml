@@ -19,5 +19,16 @@ jobs:
       - uses: actions/checkout@v5
 
       - name: Scan tracked files against denylist
-        run: |
-          git ls-files | xargs ./.github/scripts/check-private-content.sh
+        # ⚠️ SHA-pinned, unlike every other shared action here, which use @v1.
+        # Not inconsistency — this is the only shared action that is a GATE, and
+        # a compromised gate does not break the build, it returns a GREEN CHECK on
+        # a repo whose scan is no longer running. Silent-clean is the failure mode
+        # the whole firewall exists to prevent. Bump deliberately, reading the diff.
+        uses: arqtiqa/arqtos-actions/.github/actions/firewall@9bf6a61415165ddc97c478e172264b2219049f2b  # v1
+        with:
+          # ⚠️ The denylist stays HERE and is passed in. The shared action ships
+          # none: a denylist is a list of the things it protects, so a copy in a
+          # public repo publishes what it guards. This repo's list is the
+          # sanitised subset appropriate to its audience; the internal-only
+          # patterns live only in internal repos.
+          denylist: .github/scripts/private-content-denylist.txt

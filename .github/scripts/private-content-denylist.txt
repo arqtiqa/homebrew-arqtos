@@ -1,39 +1,27 @@
-# Private-content denylist — PUBLIC-TAP SUBSET.
-# Per AQS-7 / private-content-firewall decision (2026-05-05).
+# Denylist for the private-content firewall — PUBLIC repository.
 #
-# This repo (arqtiqa/homebrew-arqtos) is PUBLIC. The canonical denylist in the
-# private source (arqtiqa/arqtos:scripts/private-content-denylist.txt) also
-# matches the operator's real name, personal email, affiliated org domains, and
-# machine-hostname scheme. Those literal patterns are DELIBERATELY OMITTED here:
-# committing them to a public repo would itself leak the very identifiers they
-# guard. This public copy keeps only the generic secret / private-network
-# shapes, which are non-identifying and safe to expose.
+# The scanning logic lives in a shared composite action; only this data is local.
+# That split is deliberate: a denylist is a list of the things it protects, so
+# centralising the data would force the union of every repository's list, and the
+# union is the disclosure.
 #
-# The omitted identifier patterns stay enforced on the private arqtiqa/* repos
-# by the canonical denylist. The high-value leak vector for a formula + README
-# tap is an accidentally-committed token — caught by the patterns below.
+# This file therefore holds only GENERIC secret-shape and private-network
+# patterns. It deliberately omits any pattern that would identify a person, a
+# machine or an organisation — such a pattern IS a description of the thing it
+# guards, so committing it to a public repository publishes it.
 #
-# Format: one POSIX extended regex per line. Lines starting with `#` and blank
-# lines are ignored. No inline comments — put commentary on its own line.
+# Do NOT add patterns here to "keep it in step" with an internal list. The
+# difference is the design, not drift.
 #
-# Read by `scripts/check-private-content.sh` (CI / pre-commit hook gate).
+#   a new secret-shape pattern (a service's token format)  -> belongs here
+#   anything naming or describing a person/host/org        -> does NOT
+#
+# See ./README.md for the exit-code contract; note that a MISSING denylist exits
+# 2 and must never read as clean.
 
-# ---- Private network ranges ----
-# Literal IPs from RFC1918 home/lan ranges. Anchored octets avoid matching
-# version numbers like "10.0.1" in random text.
 \b(192\.168\.|10\.0\.|10\.1\.|172\.(1[6-9]|2[0-9]|3[0-1])\.)[0-9]{1,3}\.[0-9]{1,3}\b
-
-# ---- Tokens / secrets ----
-# Never committed regardless of which repo. Pattern shapes from the issuing
-# service's documented format.
-
-# GitHub personal access tokens (classic + fine-grained).
 ghp_[A-Za-z0-9]{36,}
 gho_[A-Za-z0-9]{36,}
 github_pat_[A-Za-z0-9_]{82,}
-
-# Linear API tokens.
 lin_api_[A-Za-z0-9]{40,}
-
-# 1Password literal vault/item references that pin a real path.
 op://[A-Za-z0-9_-]+/[A-Za-z0-9_-]+
