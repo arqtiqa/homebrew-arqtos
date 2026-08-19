@@ -11,7 +11,7 @@ for *any* third-party tap; no credentials involved).
 # 1. Tap, trust, install — no GitHub token needed
 brew tap arqtiqa/arqtos
 brew trust arqtiqa/arqtos       # one-time: Homebrew 6.0+ requires trusting any third-party tap
-brew install arqtos
+brew install arqtos-cli
 
 # 2. Verify
 arqtos version
@@ -32,11 +32,19 @@ arqtos focus <igloo>
 switches the Terminal.app profile, and wires the MCP gateway for Claude Code.
 Run `arqtos doctor` any time to preflight a floe.
 
+> **Renamed at 0.3.58**: the formula was `arqtos` and is now **`arqtos-cli`** —
+> existing installs migrate automatically on `brew update && brew upgrade`
+> (`formula_renames.json`). The installed binaries are unchanged (`arqtos`,
+> `arqtosd`); the brew-managed reconciler service moves to the `arqtos-cli`
+> service name, and the CLI ≥0.3.58 handles the launchd label migration.
+> The bare formula token is retired; `arqtos` is reserved as the future
+> macOS app's cask name.
+
 ## Upgrade
 
 ```bash
 brew update
-brew upgrade arqtos
+brew upgrade arqtos-cli         # pre-0.3.58 installs: `brew upgrade arqtos` still works via the rename mapping
 ```
 
 ## Terminal font (optional)

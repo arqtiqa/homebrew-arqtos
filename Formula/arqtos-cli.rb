@@ -11,12 +11,18 @@
 #
 # Install:
 #   brew tap arqtiqa/arqtos
-#   brew install arqtos
+#   brew install arqtos-cli
+#
+# RENAMED from `arqtos` at 0.3.58 (formula_renames.json migrates existing
+# installs on `brew upgrade`; binaries stay `arqtos` + `arqtosd`). The bare
+# formula token is retired; the cask namespace `arqtos` is reserved for the
+# future macOS app. Ruling: berg homebrew-formula-rename-evaluation
+# (doc-arq-00093).
 
-class Arqtos < Formula
+class ArqtosCli < Formula
   desc "Operating layer for specialised professional teams"
   homepage "https://arqtos.io"
-  version "0.3.57"
+  version "0.3.58"
 
   # Homebrew formulas cannot directly depend on casks (`depends_on cask:` is
   # rejected as "Unsupported special dependency"). The embedded Arqtos Dark/
@@ -28,18 +34,18 @@ class Arqtos < Formula
   if OS.mac?
     if Hardware::CPU.arm?
       url "https://github.com/arqtiqa/homebrew-arqtos/releases/download/v#{version}/arqtos_#{version}_darwin_arm64.tar.gz"
-      sha256 "fb60cb4f31efd07bd94294b1543d45c551ed63a9a0e6060a5dce68465f9d298c"
+      sha256 "ecc698b8128e46c37bf4dc036e4b94871124d431fee39dd77b7542e9fc08a24f"
     else
       url "https://github.com/arqtiqa/homebrew-arqtos/releases/download/v#{version}/arqtos_#{version}_darwin_amd64.tar.gz"
-      sha256 "b987227ff3c56b832832b6c48e05d99609c54ad7411d2ddf08e735c67c9f060d"
+      sha256 "50bc7437c9692d44e3e410ffd5713b528f95aef6b041e8d66eb602d00703fa08"
     end
   elsif OS.linux?
     if Hardware::CPU.arm?
       url "https://github.com/arqtiqa/homebrew-arqtos/releases/download/v#{version}/arqtos_#{version}_linux_arm64.tar.gz"
-      sha256 "6a2f6d1f5c24a18ece0ffbfea10e599b2150768e870692d915bcd8f357c2604f"
+      sha256 "ab53c8a421c4cabc08b283494725b175a784756dd76b9f4381ea0049bc0b74b6"
     else
       url "https://github.com/arqtiqa/homebrew-arqtos/releases/download/v#{version}/arqtos_#{version}_linux_amd64.tar.gz"
-      sha256 "072b6e116712da6785f3dd54331f55120d806b426428b4aada9244e4fee9afbc"
+      sha256 "11662ebd3ccc4e15c7a5df86fc68d8cfcec46f3cbb3751cd6acdd673f0da82f3"
     end
   end
 
