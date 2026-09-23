@@ -39,6 +39,11 @@ Run `arqtos doctor` any time to preflight a floe.
 > service name, and the CLI ≥0.3.58 handles the launchd label migration.
 > The bare formula token is retired; `arqtos` is reserved as the future
 > macOS app's cask name.
+>
+> **Line-5 runtime** is a separate formula, `arqtos-core`, and does not
+> replace `arqtos-cli`. `brew install arqtos-core` installs the five
+> runtime binaries; `brew services start arqtos-core` is a separate step
+> and is not run by the install hook.
 
 ## Upgrade
 
