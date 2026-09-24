@@ -15,7 +15,12 @@ done
 grep -q 'bin.install "arqtos", "arqtosd"' "$cli" || { echo "arqtos-cli was rewritten"; exit 1; }
 grep -q arqtos-broker "$cli" && { echo "arqtos-cli now installs line-5 binaries"; exit 1; }
 
-grep -q 'require_root false' "$core" || { echo "arqtos-core service must not require root"; exit 1; }
+grep -q 'service do' "$core" && { echo "arqtos-core must not register a brew service"; exit 1; }
+grep -q 'brew services .*arqtos-core' "$core" && { echo "brew services must not use arqtos-core"; exit 1; }
+grep -q 'brew services start arqtos-cli' "$core" || { echo "brew services start must use arqtos-cli"; exit 1; }
+grep -q 'brew services stop arqtos-cli' "$core" || { echo "brew services stop must use arqtos-cli"; exit 1; }
+grep -q 'brew services restart arqtos-cli' "$core" || { echo "brew services restart must use arqtos-cli"; exit 1; }
+grep -q 'service do' "$cli" || { echo "arqtos-cli must keep the brew service"; exit 1; }
 if grep -E 'system .*services|system .*launchctl' "$core"; then
   echo "install must not start services"
   exit 1

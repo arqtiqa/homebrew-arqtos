@@ -12,9 +12,9 @@
 #   brew tap arqtiqa/arqtos
 #   brew install arqtos-core
 #
-# Service activation is a separate step (`brew services start arqtos-core`).
-# The install hook does not start daemons, write LaunchAgents, or rewrite
-# user configuration.
+# brew services always uses the arqtos-cli token (runtime-detail §3.1).
+# This formula has no service block. The install hook does not start
+# daemons, write LaunchAgents, or rewrite user configuration.
 
 class ArqtosCore < Formula
   desc "Line-5 arqtos runtime"
@@ -49,40 +49,30 @@ class ArqtosCore < Formula
     (pkgshare/"launchd/io.arqtos.reconciler.plist").write reconciler_plist
   end
 
-  service do
-    run [
-      opt_bin/"arqtos-reconciler",
-      "--resident",
-    ]
-    keep_alive true
-    require_root false
-    environment_variables PATH: std_service_path_env
-  end
-
   def caveats
     <<~EOS
       arqtos-core is the line-5 runtime. It does not replace arqtos-cli.
 
-      Legacy-to-line-5 transition (explicit; install does not do this):
+      brew services always uses the arqtos-cli token:
 
         brew services stop arqtos-cli
-        # stop a leftover arqtosd if it is still running
-        brew services start arqtos-core
+        brew services start arqtos-cli
+        brew services restart arqtos-cli
+
+      There is no arqtos-core brew service. Stop a leftover arqtosd
+      with brew services stop arqtos-cli before loading line-5 units.
 
       Never run arqtosd and arqtos-reconciler against one state root.
-      Two writers on one state root is an incompatible state: stop the
-      legacy daemon before starting the line-5 reconciler.
+      Two writers on one state root is an incompatible state.
 
       A failed upgrade: revert the formula (version and sha256) to the last
       good release; never delete the tag.
 
       Content pins (the adopted Seed pin) are not changed by brew upgrade.
 
-        brew services start arqtos-core
-
-      starts the reconciler only. Gateway, broker and connectors are
-      socket-activated from the plists in #{opt_pkgshare}/launchd;
-      loading them is a separate launchctl step, not part of install.
+      Gateway, broker and connectors are socket-activated from the plists
+      in #{opt_pkgshare}/launchd; loading them is launchctl, not brew
+      services, and is not part of install.
     EOS
   end
 
