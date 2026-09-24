@@ -24,7 +24,11 @@ fi
 
 # Legacy-to-line-5 transition is explicit: stop arqtosd, never two writers.
 grep -q 'arqtosd' "$core" || fail "missing legacy daemon stop procedure"
-grep -q 'brew services stop arqtos-cli' "$core" || fail "missing explicit stop of the line-4 service"
+grep -q 'brew services stop arqtos-cli' "$core" || fail "missing brew services stop arqtos-cli"
+grep -q 'brew services start arqtos-cli' "$core" || fail "missing brew services start arqtos-cli"
+grep -q 'brew services restart arqtos-cli' "$core" || fail "missing brew services restart arqtos-cli"
+grep -q 'brew services .*arqtos-core' "$core" && fail "brew services must not use arqtos-core"
+grep -q 'service do' "$core" && fail "arqtos-core must not register a brew service"
 grep -q 'state root' "$core" || fail "missing two-writers/state-root warning"
 
 # Failed upgrade recovery: revert the formula, never the tag.
