@@ -63,6 +63,21 @@ class ArqtosCore < Formula
     <<~EOS
       arqtos-core is the line-5 runtime. It does not replace arqtos-cli.
 
+      Legacy-to-line-5 transition (explicit; install does not do this):
+
+        brew services stop arqtos-cli
+        # stop a leftover arqtosd if it is still running
+        brew services start arqtos-core
+
+      Never run arqtosd and arqtos-reconciler against one state root.
+      Two writers on one state root is an incompatible state: stop the
+      legacy daemon before starting the line-5 reconciler.
+
+      A failed upgrade: revert the formula (version and sha256) to the last
+      good release; never delete the tag.
+
+      Content pins (the adopted Seed pin) are not changed by brew upgrade.
+
         brew services start arqtos-core
 
       starts the reconciler only. Gateway, broker and connectors are
