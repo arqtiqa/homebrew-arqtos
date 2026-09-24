@@ -52,6 +52,19 @@ brew update
 brew upgrade arqtos-cli         # pre-0.3.58 installs: `brew upgrade arqtos` still works via the rename mapping
 ```
 
+Line-5 (`arqtos-core`) is a separate formula. A legacy `arqtos-cli` install
+stays until you stop `arqtosd` and start the line-5 reconciler:
+
+```bash
+brew install arqtos-core
+brew services stop arqtos-cli   # stop arqtosd; two writers on one state root is refused
+brew services start arqtos-core
+```
+
+`brew upgrade arqtos-core` does not rewrite `~/.arqtos`, worktrees, or the
+adopted Seed pin. A failed upgrade is recovered by reverting
+`Formula/arqtos-core.rb` — never by deleting the tag.
+
 ## Terminal font (optional)
 
 The bundled Arqtos Dark / Light Terminal.app profiles render with JetBrains
