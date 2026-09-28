@@ -16,69 +16,42 @@ brew install arqtos-cli
 # 2. Verify
 arqtos version
 
-# 3. Bootstrap this floe — creates ~/Arqtos, seeds operator.yml + floe.yml
-arqtos init --operator-name "<your name>" --operator-role human --floe-class station
-#    joining an existing org?  add:  --join-org <org-slug>
-
-# 4. Register the floe's identity
-arqtos floe register
-
-# 5. Import the bergs you can access, then focus an igloo
-arqtos igloo new --import-existing <gh-org>/<berg-repo>
-arqtos focus <igloo>
+# 3. Prepare this machine, then join an org and focus a workspace
+arqtos init --plan
+arqtos org join --plan
+arqtos focus --plan
 ```
 
-`arqtos focus <igloo>` activates the context: it resolves the config cascade,
-switches the Terminal.app profile, and wires the MCP gateway for Claude Code.
-Run `arqtos doctor` any time to preflight a floe.
+`arqtos focus` selects a workspace and converges to it. Run `arqtos doctor`
+any time to preflight a floe.
 
-> **Renamed at 0.3.58**: the formula was `arqtos` and is now **`arqtos-cli`** —
-> existing installs migrate automatically on `brew update && brew upgrade`
-> (`formula_renames.json`). The installed binaries are unchanged (`arqtos`,
-> `arqtosd`); the brew-managed reconciler service moves to the `arqtos-cli`
-> service name, and the CLI ≥0.3.58 handles the launchd label migration.
-> The bare formula token is retired; `arqtos` is reserved as the future
-> macOS app's cask name.
+> **Renamed at 0.3.58**: the formula was `arqtos` and is now **`arqtos-cli`**
+> (`formula_renames.json` is permanent). The bare token `arqtos` is reserved
+> for the future macOS app cask.
 >
-> **Line-5 runtime** is a separate formula, `arqtos-core`, and does not
-> replace `arqtos-cli`. `brew install arqtos-core` installs the five
-> runtime binaries. `brew services` always uses the `arqtos-cli` token
-> (`stop`/`start`/`restart arqtos-cli`); there is no arqtos-core brew
-> service. The install hook does not start daemons.
+> **From 0.5.0** `arqtos-cli` ships the Line-5 runtime: `arqtos`,
+> `arqtos-broker`, `arqtos-connectors`, `arqtos-gateway`,
+> `arqtos-reconciler`. It does not install `arqtosd`. `brew install
+> arqtos-core` is not a user-facing token.
 
 ## Upgrade
 
 ```bash
+brew services stop arqtos-cli     # drop leftover arqtosd; two writers on one state root is refused
 brew update
-brew upgrade arqtos-cli         # pre-0.3.58 installs: `brew upgrade arqtos` still works via the rename mapping
-```
-
-Line-5 (`arqtos-core`) is a separate formula. `brew services` always uses
-`arqtos-cli`:
-
-```bash
-brew install arqtos-core
-brew services stop arqtos-cli     # stop arqtosd; two writers on one state root is refused
+brew upgrade arqtos-cli           # pre-0.3.58 installs: `brew upgrade arqtos` still works via the rename mapping
 brew services start arqtos-cli
 brew services restart arqtos-cli
 ```
 
-`brew upgrade arqtos-core` does not rewrite `~/.arqtos`, worktrees, or the
-adopted Seed pin. A failed upgrade is recovered by reverting
-`Formula/arqtos-core.rb` — never by deleting the tag.
+`brew services` always uses the `arqtos-cli` token. That service starts
+`arqtos-reconciler` with journal, repository and intake arguments. Gateway,
+broker and connectors are socket-activated (launchd on macOS, systemd --user
+on Linux), not a second brew service, and are not started by install.
 
-## Terminal font (optional)
-
-The bundled Arqtos Dark / Light Terminal.app profiles render with JetBrains
-Mono (Homebrew can't pull a cask as a formula dependency, so it's a separate
-one-time step):
-
-```bash
-brew install --cask font-jetbrains-mono
-```
-
-Without the font, Terminal.app falls back to Menlo at first `arqtos focus`
-activation; everything else works.
+`brew upgrade arqtos-cli` does not rewrite user configuration, worktrees, or
+the adopted Seed pin. A failed upgrade is recovered by reverting
+`Formula/arqtos-cli.rb` — never by deleting the tag.
 
 ## How distribution works
 

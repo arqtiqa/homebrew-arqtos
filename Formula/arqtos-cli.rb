@@ -3,108 +3,201 @@
 
 # Homebrew formula for the arqtos toolkit binary.
 #
-# arqtos is closed-source: the source repo (arqtiqa/arqtos-cli) is private.
-# The *compiled binary* is published as a public release asset on this tap
-# (arqtiqa/homebrew-arqtos), so `brew install arqtos` requires no GitHub
-# token and no per-machine auth. The binary is inert without an arqtos
-# environment (config + bergs); config and secrets are never distributed here.
+# arqtos is closed-source: compiled binaries are published as public
+# release assets on this tap (arqtiqa/homebrew-arqtos). `brew install
+# arqtos-cli` requires no GitHub token. The binary is inert without an
+# arqtos environment (config + bergs); config and secrets are never
+# distributed here.
 #
 # Install:
 #   brew tap arqtiqa/arqtos
 #   brew install arqtos-cli
 #
-# RENAMED from `arqtos` at 0.3.58 (formula_renames.json migrates existing
-# installs on `brew upgrade`; binaries stay `arqtos` + `arqtosd`). The bare
-# formula token is retired; the cask namespace `arqtos` is reserved for the
-# future macOS app. Ruling: berg homebrew-formula-rename-evaluation
-# (doc-arq-00093).
+# The formula token is arqtos-cli (renamed from arqtos at 0.3.58;
+# formula_renames.json is permanent). From 0.5.0 it ships the Line-5
+# runtime (arqtos-core). The installed CLI name stays arqtos. The bare
+# token arqtos is reserved for the macOS app cask (doc-arq-00093).
+# Operator ruling 2026-09-24: do not brew install arqtos-core.
 
 class ArqtosCli < Formula
   desc "Operating layer for specialised professional teams"
   homepage "https://arqtos.io"
-  version "0.3.58"
-
-  # Homebrew formulas cannot directly depend on casks (`depends_on cask:` is
-  # rejected as "Unsupported special dependency"). The embedded Arqtos Dark/
-  # Light Terminal.app profiles reference JetBrains Mono via a base64 NSFont
-  # blob; floes without the font fall back to Menlo at first activation.
-  # Operators install the font via a separate `brew install --cask` step;
-  # caveats below surfaces the hint at install time.
+  version "0.5.0"
 
   if OS.mac?
     if Hardware::CPU.arm?
       url "https://github.com/arqtiqa/homebrew-arqtos/releases/download/v#{version}/arqtos_#{version}_darwin_arm64.tar.gz"
-      sha256 "ecc698b8128e46c37bf4dc036e4b94871124d431fee39dd77b7542e9fc08a24f"
+      sha256 "0ba027b4e0f5fa0e8550318f0133ccecc105356833103e9489afa87e47c141ab"
     else
       url "https://github.com/arqtiqa/homebrew-arqtos/releases/download/v#{version}/arqtos_#{version}_darwin_amd64.tar.gz"
-      sha256 "50bc7437c9692d44e3e410ffd5713b528f95aef6b041e8d66eb602d00703fa08"
+      sha256 "57585186a4ef3ba3030c64b1315548721ca17b203c96bf969570e62d9b673561"
     end
   elsif OS.linux?
     if Hardware::CPU.arm?
       url "https://github.com/arqtiqa/homebrew-arqtos/releases/download/v#{version}/arqtos_#{version}_linux_arm64.tar.gz"
-      sha256 "ab53c8a421c4cabc08b283494725b175a784756dd76b9f4381ea0049bc0b74b6"
+      sha256 "b9e32f92b8befa4f987fbbc59a36ee62bc5e80e69b23740b060f6d642c370a6b"
     else
       url "https://github.com/arqtiqa/homebrew-arqtos/releases/download/v#{version}/arqtos_#{version}_linux_amd64.tar.gz"
-      sha256 "11662ebd3ccc4e15c7a5df86fc68d8cfcec46f3cbb3751cd6acdd673f0da82f3"
+      sha256 "ec03383c52ad432bc74e3c90a6aabea753cfa8d6a3c211b49745ba80449cc0ac"
     end
   end
 
   def install
-    bin.install "arqtos", "arqtosd"
+    bin.install "arqtos", "arqtos-broker", "arqtos-connectors", "arqtos-gateway", "arqtos-reconciler"
+    state = var/"arqtos"
+    (state/"intake").mkpath
+    canonical = state/"canonical"
+    canonical.mkpath
+    system "git", "-C", canonical, "init", "--quiet" unless (canonical/".git").exist?
+    runtime = var/"run"
+    if OS.mac?
+      (pkgshare/"launchd").mkpath
+      %w[gateway broker connectors].each do |member|
+        (pkgshare/"launchd/io.arqtos.#{member}.plist").write socket_plist(member, runtime)
+      end
+    elsif OS.linux?
+      (pkgshare/"systemd").mkpath
+      %w[gateway broker connectors].each do |member|
+        (pkgshare/"systemd/arqtos-#{member}.socket").write systemd_socket(member, runtime)
+        (pkgshare/"systemd/arqtos-#{member}.service").write systemd_socket_service(member)
+      end
+    end
   end
 
-  # Homebrew-managed reconciler (arqtiqa/arqtos-cli#773): `brew services start
-  # arqtos` runs the resident berg reconciler, and `brew upgrade` auto-restarts
-  # it onto the new binary. The daemon self-resolves the floe + resolves `op` by
-  # absolute path (cli#753), so no special env is needed here.
   service do
-    run [opt_bin/"arqtos", "reconciler", "run"]
+    run [
+      opt_bin/"arqtos-reconciler",
+      "--resident",
+      "--journal=#{var}/arqtos/reconciler.db",
+      "--repo=#{var}/arqtos/canonical",
+      "--intake=#{var}/arqtos/intake",
+    ]
     keep_alive true
     run_at_load true
-    log_path "#{ENV["HOME"]}/Library/Logs/arqtos/sync-engine.log"
-    error_log_path "#{ENV["HOME"]}/Library/Logs/arqtos/sync-engine.log"
+    working_dir var/"arqtos"
+    log_path var/"log/arqtos-reconciler.log"
+    error_log_path var/"log/arqtos-reconciler.log"
   end
 
   def caveats
     <<~EOS
-      The Arqtos Dark and Arqtos Light Terminal.app profiles render with
-      JetBrains Mono. To install the font on this floe (one-time, separate
-      from this formula since Homebrew doesn't support cask deps from
-      formulas):
+      Line-5 ships through arqtos-cli. Do not brew install arqtos-core.
 
-        brew install --cask font-jetbrains-mono
+      brew services always uses the arqtos-cli token:
 
-      Without the font installed, Terminal.app falls back to Menlo at first
-      `arqtos focus <igloo>` activation; everything else works.
+        brew services stop arqtos-cli
+        brew services start arqtos-cli
+        brew services restart arqtos-cli
+
+      That service starts arqtos-reconciler with journal, repository and
+      intake under #{var}/arqtos. Readiness is the process printing
+      "ready" on stdout (captured in the service log). Bare --resident
+      is not a complete argv.
+
+      Stop leftover arqtosd with brew services stop arqtos-cli before
+      two writers share one state root. Never run arqtosd and
+      arqtos-reconciler against one state root.
+
+      Gateway, broker and connectors are socket-activated, not brew
+      services, and are not started by install:
+        macOS: #{opt_pkgshare}/launchd (launchctl)
+        Linux: #{opt_pkgshare}/systemd (systemd --user)
+
+      A failed upgrade: revert the formula (version and sha256) to the
+      last good release; never delete the tag.
+
+      Content pins (the adopted Seed pin) are not changed by brew upgrade.
     EOS
   end
 
   test do
-    # Acceptance: version subcommand reports the formula version + build metadata.
+    %w[arqtos arqtos-broker arqtos-connectors arqtos-gateway arqtos-reconciler].each do |name|
+      assert_predicate bin/name, :exist?
+      assert_predicate bin/name, :executable?
+    end
+    refute_predicate bin/"arqtosd", :exist?
+
     output = shell_output("#{bin}/arqtos version")
-    assert_match "arqtos #{version}", output
-    assert_match "commit:", output
-    assert_match "build date:", output
+    assert_match "arqtos v#{version}", output
 
-    # Acceptance: the focus surface is wired + responds to --help (no live
-    # ~/.arqtos or ~/Arqtos tree required in the test sandbox).
+    help = shell_output("#{bin}/arqtos --help")
+    assert_match "focus", help
+    assert_match "org join", help
+    assert_match "doctor", help
+    refute_match "install-terminal-profiles", help
+
     focus_help = shell_output("#{bin}/arqtos focus --help")
-    assert_match "focus", focus_help
-    assert_match "--dry-run", focus_help
-    assert_match "--show-path", focus_help
-    assert_match "--exec", focus_help
-    assert_match "--status", focus_help
-    assert_match "--clear-overrides", focus_help
+    assert_match "--json", focus_help
+    refute_match "--dry-run", focus_help
 
-    # Acceptance: the floe parent exposes terminal-profile install.
-    floe_help = shell_output("#{bin}/arqtos floe --help")
-    assert_match "install-terminal-profiles", floe_help
+    # Fail-closed without a focused org: exit 7, not a silent skip.
+    assert_match "precondition", shell_output("#{bin}/arqtos org join --json 2>&1", 7)
 
-    # Acceptance: the MCP-bridge plugin surface — install / list / uninstall / show.
-    plugin_help = shell_output("#{bin}/arqtos plugin --help")
-    assert_match "install", plugin_help
-    assert_match "list", plugin_help
-    assert_match "uninstall", plugin_help
-    assert_match "show", plugin_help
+    rec = shell_output("#{bin}/arqtos-reconciler 2>&1")
+    assert_match "--journal=<path> --repo=<dir> --intake=<dir>", rec
+  end
+
+  def systemd_socket(member, runtime)
+    sock = runtime/"arqtos/#{member}.sock"
+    <<~EOS
+      [Socket]
+      ListenStream=#{sock}
+      SocketMode=0600
+      DirectoryMode=0700
+      Accept=no
+
+      [Install]
+      WantedBy=sockets.target
+    EOS
+  end
+
+  def systemd_socket_service(member)
+    <<~EOS
+      [Unit]
+      Description=arqtos #{member}
+
+      [Service]
+      Type=simple
+      ExecStart=#{opt_bin}/arqtos-#{member} --socket=#{var}/run/arqtos/#{member}.sock
+      Restart=on-failure
+      RestartSec=10
+      MemoryMax=256M
+    EOS
+  end
+
+  def socket_plist(member, runtime)
+    sock = runtime/"arqtos/#{member}.sock"
+    <<~EOS
+      <?xml version="1.0" encoding="UTF-8"?>
+      <!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
+      <plist version="1.0">
+      <dict>
+        <key>Label</key>
+        <string>io.arqtos.#{member}</string>
+        <key>ProgramArguments</key>
+        <array>
+          <string>#{opt_bin}/arqtos-#{member}</string>
+          <string>--socket=#{sock}</string>
+        </array>
+        <key>ThrottleInterval</key>
+        <integer>10</integer>
+        <key>inetdCompatibility</key>
+        <dict>
+          <key>Wait</key>
+          <true/>
+        </dict>
+        <key>Sockets</key>
+        <dict>
+          <key>Listeners</key>
+          <dict>
+            <key>SockPathName</key>
+            <string>#{sock}</string>
+            <key>SockPathMode</key>
+            <integer>384</integer>
+          </dict>
+        </dict>
+      </dict>
+      </plist>
+    EOS
   end
 end
