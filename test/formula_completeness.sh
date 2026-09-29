@@ -1,10 +1,10 @@
 #!/bin/sh
-# Formula completeness for Line-5 arqtos-cli (homebrew-arqtos#35).
+# Formula completeness for Line-5 arqtos-cli (homebrew-arqtos#38).
 set -e
 root="$(CDPATH= cd -- "$(dirname "$0")/.." && pwd)"
 cli="$root/Formula/arqtos-cli.rb"
 core="$root/Formula/arqtos-core.rb"
-sums="$root/test/v0.5.0.checksums.txt"
+sums="$root/test/v0.5.1.checksums.txt"
 
 fail() { echo "$*"; exit 1; }
 
@@ -13,15 +13,15 @@ test -f "$cli" || fail "arqtos-cli formula missing"
 # Mutation: a formula that still installs arqtosd fails five-now completeness.
 grep -q 'bin.install "arqtos", "arqtosd"' "$cli" && fail "arqtos-cli still installs arqtosd"
 
-grep -q 'version "0.5.0"' "$cli" || fail "arqtos-cli version is not 0.5.0"
+grep -q 'version "0.5.1"' "$cli" || fail "arqtos-cli version is not 0.5.1"
 
 grep -q 'bin.install "arqtos", "arqtos-broker", "arqtos-connectors", "arqtos-gateway", "arqtos-reconciler"' "$cli" \
   || fail "arqtos-cli missing five line-5 binaries"
 
 # Four published sums, compared by filename, not by eye.
 test -f "$sums" || fail "missing published checksums fixture"
-for name in arqtos_0.5.0_darwin_arm64.tar.gz arqtos_0.5.0_darwin_amd64.tar.gz \
-            arqtos_0.5.0_linux_arm64.tar.gz arqtos_0.5.0_linux_amd64.tar.gz; do
+for name in arqtos_0.5.1_darwin_arm64.tar.gz arqtos_0.5.1_darwin_amd64.tar.gz \
+            arqtos_0.5.1_linux_arm64.tar.gz arqtos_0.5.1_linux_amd64.tar.gz; do
   want="$(awk -v n="$name" '$2==n {print $1}' "$sums")"
   test -n "$want" || fail "checksums fixture missing $name"
   grep -q "$want" "$cli" || fail "arqtos-cli sha256 for $name does not match checksums.txt"
