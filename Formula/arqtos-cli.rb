@@ -22,23 +22,23 @@
 class ArqtosCli < Formula
   desc "Operating layer for specialised professional teams"
   homepage "https://arqtos.io"
-  version "0.5.1"
+  version "0.5.2"
 
   if OS.mac?
     if Hardware::CPU.arm?
       url "https://github.com/arqtiqa/homebrew-arqtos/releases/download/v#{version}/arqtos_#{version}_darwin_arm64.tar.gz"
-      sha256 "babb34c9ffb57c8c8e07e8d67a7fd6a0c3ae479a8d0457d362a282a659d7dad3"
+      sha256 "5807925b0d5b35598dcb85fc6361eb25cf60ec2d6c89ac1c7fcda54af2d7d9d6"
     else
       url "https://github.com/arqtiqa/homebrew-arqtos/releases/download/v#{version}/arqtos_#{version}_darwin_amd64.tar.gz"
-      sha256 "eed94d51de50230eae6a547a221dbbef80bedaab87242aa5890848525aa53bb6"
+      sha256 "83d373af919cd6bb9b31e692312def4f404d51e5d2c36b4bd899336c904d0e4c"
     end
   elsif OS.linux?
     if Hardware::CPU.arm?
       url "https://github.com/arqtiqa/homebrew-arqtos/releases/download/v#{version}/arqtos_#{version}_linux_arm64.tar.gz"
-      sha256 "0730ff17660c4ba583d75e940cadaee69ad10d45cd83ad76cd46b4ed3be78b8c"
+      sha256 "7e7e7ed4f392f3a440f1de5074603decaaf7c9457b21aa4536fac78cf9d9ee54"
     else
       url "https://github.com/arqtiqa/homebrew-arqtos/releases/download/v#{version}/arqtos_#{version}_linux_amd64.tar.gz"
-      sha256 "cf688c231468594d808a92bbe3967406edd75fff88d0bed305c1b4d7271ff321"
+      sha256 "fe492b6d953602b4e76bbbcfd568d5de8a46af57b71d2820bc4b41faaf8333d9"
     end
   end
 
