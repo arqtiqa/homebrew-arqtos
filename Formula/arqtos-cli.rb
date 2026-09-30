@@ -99,9 +99,26 @@ class ArqtosCli < Formula
       arqtos-reconciler against one state root.
 
       Gateway, broker and connectors are socket-activated, not brew
-      services, and are not started by install:
-        macOS: #{opt_pkgshare}/launchd (launchctl)
-        Linux: #{opt_pkgshare}/systemd (systemd --user)
+      services, and are not started by install. The sequence is
+      install, then enrol, then activate:
+
+        brew install arqtos-cli
+        arqtos init --machine <id> --principal <id>
+        arqtos org join --home <control-repo> --inventory <file> --bootstrap=prompt
+        arqtos launch install
+        brew services start arqtos-cli
+
+      arqtos launch install writes user launchd/systemd units from the
+      enrolled launch plan (nonsecret flags only). Zero-org omits
+      broker and connectors so they cannot retry before enrol.
+      brew services start|stop|restart arqtos-cli is the reconciler.
+      After launch install, load socket units with launchctl (macOS)
+      or systemctl --user (Linux). Do not load io.arqtos.reconciler
+      and the brew service against one state root.
+
+      Packaged #{opt_pkgshare}/launchd and #{opt_pkgshare}/systemd
+      templates stay socket-only placeholders; they cannot bake an
+      org because brew install precedes enrolment.
 
       A failed upgrade: revert the formula (version and sha256) to the
       last good release; never delete the tag.
