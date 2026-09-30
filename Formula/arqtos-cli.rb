@@ -22,28 +22,30 @@
 class ArqtosCli < Formula
   desc "Operating layer for specialised professional teams"
   homepage "https://arqtos.io"
-  version "0.5.2"
+  version "0.5.3"
 
   if OS.mac?
     if Hardware::CPU.arm?
       url "https://github.com/arqtiqa/homebrew-arqtos/releases/download/v#{version}/arqtos_#{version}_darwin_arm64.tar.gz"
-      sha256 "5807925b0d5b35598dcb85fc6361eb25cf60ec2d6c89ac1c7fcda54af2d7d9d6"
+      sha256 "78a903c2808ac091005a4de4d9ccb1ef25871c01f2eab2f18449496f97585d44"
     else
       url "https://github.com/arqtiqa/homebrew-arqtos/releases/download/v#{version}/arqtos_#{version}_darwin_amd64.tar.gz"
-      sha256 "83d373af919cd6bb9b31e692312def4f404d51e5d2c36b4bd899336c904d0e4c"
+      sha256 "fbb9353dd0a5d5f78f9a17acff7a17d77df029a2bfa2df48e0cda3007019f089"
     end
   elsif OS.linux?
     if Hardware::CPU.arm?
       url "https://github.com/arqtiqa/homebrew-arqtos/releases/download/v#{version}/arqtos_#{version}_linux_arm64.tar.gz"
-      sha256 "7e7e7ed4f392f3a440f1de5074603decaaf7c9457b21aa4536fac78cf9d9ee54"
+      sha256 "6596a19b59de642504595d258b4e54e82442f020790032ac5c87c824d7cb98ba"
     else
       url "https://github.com/arqtiqa/homebrew-arqtos/releases/download/v#{version}/arqtos_#{version}_linux_amd64.tar.gz"
-      sha256 "fe492b6d953602b4e76bbbcfd568d5de8a46af57b71d2820bc4b41faaf8333d9"
+      sha256 "740632699cf758c70dc6f128340248b8052d9cdc93f004d632fb3275cdb90ba3"
     end
   end
 
   def install
     bin.install "arqtos", "arqtos-broker", "arqtos-connectors", "arqtos-gateway", "arqtos-reconciler"
+    provider = "libexec/onepassword"
+    libexec.install provider if File.exist?(provider)
     state = var/"arqtos"
     (state/"intake").mkpath
     canonical = state/"canonical"
@@ -99,9 +101,31 @@ class ArqtosCli < Formula
       arqtos-reconciler against one state root.
 
       Gateway, broker and connectors are socket-activated, not brew
-      services, and are not started by install:
-        macOS: #{opt_pkgshare}/launchd (launchctl)
-        Linux: #{opt_pkgshare}/systemd (systemd --user)
+      services, and are not started by install. The sequence is
+      install, then enrol, then activate:
+
+        brew install arqtos-cli
+        arqtos init --machine <id> --principal <id>
+        arqtos org join --home <control-repo> --inventory <file> --bootstrap=prompt
+        arqtos launch install
+        brew services start arqtos-cli
+
+      arqtos launch install writes user launchd/systemd units from the
+      enrolled launch plan (nonsecret flags only). Zero-org omits
+      broker and connectors so they cannot retry before enrol.
+      brew services start|stop|restart arqtos-cli is the reconciler.
+      After launch install, load socket units with launchctl (macOS)
+      or systemctl --user (Linux). Do not load io.arqtos.reconciler
+      and the brew service against one state root.
+
+      Packaged #{opt_pkgshare}/launchd and #{opt_pkgshare}/systemd
+      templates stay socket-only placeholders; they cannot bake an
+      org because brew install precedes enrolment.
+
+      The credential provider is installed at #{opt_libexec}/onepassword
+      and is not a public command. Normal onboarding does not require
+      setting ARQTOS_CREDENTIAL_CONNECTOR; that variable remains an
+      explicit override. A missing or incompatible provider fails closed.
 
       A failed upgrade: revert the formula (version and sha256) to the
       last good release; never delete the tag.
@@ -116,6 +140,10 @@ class ArqtosCli < Formula
       assert_predicate bin/name, :executable?
     end
     refute_predicate bin/"arqtosd", :exist?
+    refute_predicate bin/"onepassword", :exist?
+    if (libexec/"onepassword").exist?
+      assert_predicate libexec/"onepassword", :executable?
+    end
 
     output = shell_output("#{bin}/arqtos version")
     assert_match "arqtos v#{version}", output
