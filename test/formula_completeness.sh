@@ -18,6 +18,12 @@ grep -q 'version "0.5.2"' "$cli" || fail "arqtos-cli version is not 0.5.2"
 grep -q 'bin.install "arqtos", "arqtos-broker", "arqtos-connectors", "arqtos-gateway", "arqtos-reconciler"' "$cli" \
   || fail "arqtos-cli missing five line-5 binaries"
 
+grep -q 'libexec.install' "$cli" || fail "arqtos-cli missing libexec provider install"
+grep -q 'onepassword' "$cli" || fail "arqtos-cli missing pinned onepassword provider"
+if grep -E 'bin.install .*"onepassword"' "$cli"; then
+  fail "arqtos-cli publishes onepassword as a public command"
+fi
+
 # Four published sums, compared by filename, not by eye.
 test -f "$sums" || fail "missing published checksums fixture"
 for name in arqtos_0.5.2_darwin_arm64.tar.gz arqtos_0.5.2_darwin_amd64.tar.gz \

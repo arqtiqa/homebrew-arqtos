@@ -44,6 +44,8 @@ class ArqtosCli < Formula
 
   def install
     bin.install "arqtos", "arqtos-broker", "arqtos-connectors", "arqtos-gateway", "arqtos-reconciler"
+    provider = "libexec/onepassword"
+    libexec.install provider if File.exist?(provider)
     state = var/"arqtos"
     (state/"intake").mkpath
     canonical = state/"canonical"
@@ -107,6 +109,11 @@ class ArqtosCli < Formula
       last good release; never delete the tag.
 
       Content pins (the adopted Seed pin) are not changed by brew upgrade.
+
+      The credential provider is installed at #{opt_libexec}/onepassword
+      and is not a public command. Normal onboarding does not require
+      setting ARQTOS_CREDENTIAL_CONNECTOR; that variable remains an
+      explicit override. A missing or incompatible provider fails closed.
     EOS
   end
 
@@ -116,6 +123,10 @@ class ArqtosCli < Formula
       assert_predicate bin/name, :executable?
     end
     refute_predicate bin/"arqtosd", :exist?
+    refute_predicate bin/"onepassword", :exist?
+    if (libexec/"onepassword").exist?
+      assert_predicate libexec/"onepassword", :executable?
+    end
 
     output = shell_output("#{bin}/arqtos version")
     assert_match "arqtos v#{version}", output
