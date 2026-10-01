@@ -33,17 +33,15 @@ for name in arqtos_0.5.3_darwin_arm64.tar.gz arqtos_0.5.3_darwin_amd64.tar.gz \
   grep -q "$want" "$cli" || fail "arqtos-cli sha256 for $name does not match checksums.txt"
 done
 
-# brew services stays the arqtos-cli token and starts the Line-5 reconciler
-# with resolved journal/repository/intake. Bare --resident is insufficient.
-grep -q 'service do' "$cli" || fail "arqtos-cli must keep the brew service"
-grep -q 'arqtos-reconciler' "$cli" || fail "brew services must start arqtos-reconciler"
-grep -q -- '--journal=' "$cli" || fail "reconciler missing --journal="
-grep -q -- '--repo=' "$cli" || fail "reconciler missing --repo="
-grep -q -- '--intake=' "$cli" || fail "reconciler missing --intake="
-if grep -q -- '--resident' "$cli" && ! grep -q -- '--journal=' "$cli"; then
-  fail "bare --resident is insufficient"
+# Launch activate owns the reconciler. brew services must not register a writer.
+if grep -q 'service do' "$cli"; then
+  fail "arqtos-cli must not register a brew service writer"
 fi
+grep -q 'arqtos launch activate' "$cli" || fail "formula must document launch activate"
 grep -q 'brew services .*arqtos-core' "$cli" && fail "brew services must not use arqtos-core"
+if grep -q 'var}/arqtos' "$cli" || grep -q 'var/"arqtos"' "$cli"; then
+  fail "formula still owns a Homebrew-specific journal"
+fi
 
 # Socket-activated members: macOS launchd and Linux systemd, separately.
 grep -q 'OS.mac?' "$cli" || fail "missing macOS unit path"
@@ -62,7 +60,9 @@ if test -f "$core"; then
   grep -q 'service do' "$core" && fail "arqtos-core must not register a brew service"
 fi
 
-grep -q '~/.arqtos' "$cli" && fail "formula rewrites user configuration"
+if grep -E 'mkpath|mkdir|system "git"' "$cli" | grep -q 'arqtos'; then
+  fail "install writes an arqtos state tree"
+fi
 if grep -E 'system .*services|system .*launchctl' "$cli"; then
   fail "install must not start services"
 fi

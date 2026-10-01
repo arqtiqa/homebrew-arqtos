@@ -37,17 +37,17 @@ any time to preflight a floe.
 ## Upgrade
 
 ```bash
-brew services stop arqtos-cli     # drop leftover arqtosd; two writers on one state root is refused
+brew services stop arqtos-cli     # drop leftover writers; two writers on one state root is refused
 brew update
 brew upgrade arqtos-cli           # pre-0.3.58 installs: `brew upgrade arqtos` still works via the rename mapping
-brew services start arqtos-cli
-brew services restart arqtos-cli
+arqtos launch activate            # reload the launch-plan supervisor
 ```
 
-`brew services` always uses the `arqtos-cli` token. That service starts
-`arqtos-reconciler` with journal, repository and intake arguments. Gateway,
-broker and connectors are socket-activated (launchd on macOS, systemd --user
-on Linux), not a second brew service, and are not started by install.
+The reconciler supervisor is `arqtos launch activate`. Journal, repository
+and intake live under `~/.arqtos/state` — the same layout contract `arqtos
+doctor` and `arqtos launch plan` use. `brew services start` must not start
+a second writer. Gateway, broker and connectors ride the same activate
+step and are not started by install.
 
 `brew upgrade arqtos-cli` does not rewrite user configuration, worktrees, or
 the adopted Seed pin. A failed upgrade is recovered by reverting
