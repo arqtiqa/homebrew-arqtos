@@ -45,7 +45,8 @@ class ArqtosCli < Formula
   def install
     bin.install "arqtos", "arqtos-broker", "arqtos-connectors", "arqtos-gateway", "arqtos-reconciler"
     provider = "libexec/onepassword"
-    libexec.install provider if File.exist?(provider)
+    File.exist?(provider) || raise("advertised credential provider #{provider} is missing from the archive")
+    libexec.install provider
     runtime = var/"run"
     if OS.mac?
       (pkgshare/"launchd").mkpath
@@ -115,8 +116,31 @@ class ArqtosCli < Formula
     end
     refute_predicate bin/"arqtosd", :exist?
     refute_predicate bin/"onepassword", :exist?
-    if (libexec/"onepassword").exist?
-      assert_predicate libexec/"onepassword", :executable?
+    assert_predicate libexec/"onepassword", :exist?
+    assert_predicate libexec/"onepassword", :executable?
+
+    if OS.mac?
+      require "open3"
+      require "timeout"
+      env = ENV.to_h.reject { |k, _| k.match?(/TOKEN|SECRET|VAULT/i) || k.include?("CREDENTIAL_CONNECTOR") }
+      out = ""
+      begin
+        Timeout.timeout(5) do
+          o, e, = Open3.capture3(env, (libexec/"onepassword").to_s)
+          out = "#{o}#{e}"
+        end
+      rescue Timeout::Error
+        flunk "credential provider handshake timed out"
+      end
+      refute_match(/service_account|gho_|github_pat_/i, out)
+      if out.match?(/--socket/i) && out.match?(/--config/i)
+        flunk "socket/config host cannot pass as the credential-provider plugin"
+      end
+      unless out.match?(/plugin|handshake|protocol/i)
+        flunk "incompatible handshake"
+      end
+    elsif !OS.linux?
+      omit "native provider handshake and seal recovery are Darwin-qualified"
     end
 
     output = shell_output("#{bin}/arqtos version")

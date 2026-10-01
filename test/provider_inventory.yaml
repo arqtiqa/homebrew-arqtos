@@ -1,0 +1,13 @@
+# Advertised auxiliary credential-provider inventory for candidate 0.5.3.
+# Provider bytes are pinned by the platform archive SHA in
+# test/v0.5.3.checksums.txt. This file is not a stable cut.
+version: "0.5.3"
+archive_pins: test/v0.5.3.checksums.txt
+aux:
+  - name: onepassword
+    path: libexec/onepassword
+    platforms:
+      - darwin/arm64
+      - darwin/amd64
+      - linux/arm64
+      - linux/amd64
