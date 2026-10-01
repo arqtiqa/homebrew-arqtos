@@ -52,6 +52,9 @@ test "$(cat "$state/orgs/acme/enrol.yaml")" = "kind: enrol" || fail "upgrade rew
 test -f "$state/bootstrap.sealed" || fail "upgrade destroyed secret custody"
 
 # Missing provider is a named refusal, not a silent skip.
+if grep -q 'if File.exist?(provider)' "$cli" || grep -q 'libexec.install provider if File.exist?' "$cli"; then
+  fail "formula silently skips a missing advertised provider"
+fi
 missing="$fix/empty"
 mkdir -p "$missing/bin" "$missing/libexec"
 printf 'cli\n' >"$missing/bin/arqtos"
