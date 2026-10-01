@@ -46,11 +46,6 @@ class ArqtosCli < Formula
     bin.install "arqtos", "arqtos-broker", "arqtos-connectors", "arqtos-gateway", "arqtos-reconciler"
     provider = "libexec/onepassword"
     libexec.install provider if File.exist?(provider)
-    state = var/"arqtos"
-    (state/"intake").mkpath
-    canonical = state/"canonical"
-    canonical.mkpath
-    system "git", "-C", canonical, "init", "--quiet" unless (canonical/".git").exist?
     runtime = var/"run"
     if OS.mac?
       (pkgshare/"launchd").mkpath
@@ -66,61 +61,40 @@ class ArqtosCli < Formula
     end
   end
 
-  service do
-    run [
-      opt_bin/"arqtos-reconciler",
-      "--resident",
-      "--journal=#{var}/arqtos/reconciler.db",
-      "--repo=#{var}/arqtos/canonical",
-      "--intake=#{var}/arqtos/intake",
-    ]
-    keep_alive true
-    run_at_load true
-    working_dir var/"arqtos"
-    log_path var/"log/arqtos-reconciler.log"
-    error_log_path var/"log/arqtos-reconciler.log"
-  end
-
   def caveats
     <<~EOS
       Line-5 ships through arqtos-cli. Do not brew install arqtos-core.
 
-      brew services always uses the arqtos-cli token:
+      The reconciler supervisor is arqtos launch activate. Journal,
+      repository and intake are ~/.arqtos/state (layout.Journal), the
+      same paths doctor and launch plan probe. brew services must not
+      start a second writer on that state root.
+
+      Drop a leftover Homebrew reconciler or arqtosd before activate:
 
         brew services stop arqtos-cli
-        brew services start arqtos-cli
-        brew services restart arqtos-cli
 
-      That service starts arqtos-reconciler with journal, repository and
-      intake under #{var}/arqtos. Readiness is the process printing
-      "ready" on stdout (captured in the service log). Bare --resident
-      is not a complete argv.
+      Never run arqtosd and arqtos-reconciler against one state root.
+      Never load io.arqtos.reconciler and a brew service against one
+      state root.
 
-      Stop leftover arqtosd with brew services stop arqtos-cli before
-      two writers share one state root. Never run arqtosd and
-      arqtos-reconciler against one state root.
-
-      Gateway, broker and connectors are socket-activated, not brew
-      services, and are not started by install. The sequence is
-      install, then enrol, then activate:
+      Install does not start services. The sequence is install, enrol,
+      then activate with the installed binary:
 
         brew install arqtos-cli
         arqtos init --machine <id> --principal <id>
         arqtos org join --home <control-repo> --inventory <file> --bootstrap=prompt
         arqtos launch install
-        brew services start arqtos-cli
+        arqtos launch activate
 
-      arqtos launch install writes user launchd/systemd units from the
-      enrolled launch plan (nonsecret flags only). Zero-org omits
-      broker and connectors so they cannot retry before enrol.
-      brew services start|stop|restart arqtos-cli is the reconciler.
-      After launch install, load socket units with launchctl (macOS)
-      or systemctl --user (Linux). Do not load io.arqtos.reconciler
-      and the brew service against one state root.
+      Restart is arqtos launch activate again. Stop is arqtos launch stop.
+      arqtos doctor reports initialized through runtime-ready against
+      ~/.arqtos/state. Do not edit launchd plists by hand.
 
       Packaged #{opt_pkgshare}/launchd and #{opt_pkgshare}/systemd
       templates stay socket-only placeholders; they cannot bake an
-      org because brew install precedes enrolment.
+      org because brew install precedes enrolment. Do not load them
+      in place of launch install.
 
       The credential provider is installed at #{opt_libexec}/onepassword
       and is not a public command. Normal onboarding does not require

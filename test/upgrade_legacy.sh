@@ -20,18 +20,20 @@ if test -f "$core"; then
 fi
 
 # Supported upgrade does not rewrite user config or worktrees.
-grep -q '~/.arqtos' "$cli" && fail "arqtos-cli install rewrites user configuration"
-grep -q 'worktree' "$cli" && fail "arqtos-cli install touches worktrees"
+if grep -E 'mkpath|mkdir|system "git"' "$cli" | grep -q 'arqtos'; then
+  fail "arqtos-cli install writes an arqtos state tree"
+fi
 if grep -E 'system .*services|system .*launchctl' "$cli"; then
   fail "upgrade must not start services in the install hook"
 fi
 
-# Legacy-to-line-5 transition is explicit: stop leftover arqtosd, never two writers.
+# Legacy-to-line-5 transition: stop leftover brew writers; launch activate owns runtime.
 grep -q 'brew services stop arqtos-cli' "$cli" || fail "missing brew services stop arqtos-cli"
-grep -q 'brew services start arqtos-cli' "$cli" || fail "missing brew services start arqtos-cli"
-grep -q 'brew services restart arqtos-cli' "$cli" || fail "missing brew services restart arqtos-cli"
+grep -q 'arqtos launch activate' "$cli" || fail "missing launch activate supervisor"
 grep -q 'brew services .*arqtos-core' "$cli" && fail "brew services must not use arqtos-core"
-grep -q 'service do' "$cli" || fail "arqtos-cli must keep the brew service"
+if grep -q 'service do' "$cli"; then
+  fail "arqtos-cli must not keep a competing brew service"
+fi
 grep -q 'state root' "$cli" || fail "missing two-writers/state-root warning"
 
 # Failed upgrade recovery: revert the formula, never the tag.

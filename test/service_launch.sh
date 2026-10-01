@@ -11,13 +11,16 @@ test -f "$cli" || fail "arqtos-cli formula missing"
 
 # Install → enrol → activate is documented; brew cannot bake --org.
 grep -q 'arqtos launch install' "$cli" || fail "caveats missing arqtos launch install"
+grep -q 'arqtos launch activate' "$cli" || fail "caveats missing arqtos launch activate"
+grep -q 'arqtos launch stop' "$cli" || fail "caveats missing arqtos launch stop"
 grep -q 'brew install arqtos-cli' "$cli" || fail "caveats missing brew install"
 grep -q 'org join' "$cli" || fail "caveats missing org join"
-grep -q 'brew services start arqtos-cli' "$cli" || fail "caveats missing brew services start"
 
-# Explicit stop/start/restart stay on the arqtos-cli token.
+# Leftover brew-service writers are stopped; activate is the supervisor.
 grep -q 'brew services stop arqtos-cli' "$cli" || fail "missing brew services stop"
-grep -q 'brew services restart arqtos-cli' "$cli" || fail "missing brew services restart"
+if grep -q 'brew services start arqtos-cli' "$cli"; then
+  fail "brew services start is still documented as the reconciler owner"
+fi
 
 # Formula-time units stay socket-only; enrol happens after brew install.
 if grep -q -- '--org=' "$cli"; then

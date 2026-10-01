@@ -24,7 +24,9 @@ grep -q 'ARQTOS_CREDENTIAL_CONNECTOR' "$cli" || fail "formula must document the 
 grep -q 'libexec' "$cli" || fail "formula must name the libexec discovery location"
 
 # Clean install / binary-only upgrade must not rewrite authored config or custody.
-grep -q '~/.arqtos' "$cli" && fail "formula rewrites user configuration"
+if grep -E 'mkpath|mkdir|system "git"' "$cli" | grep -q 'arqtos'; then
+  fail "formula writes an arqtos state tree"
+fi
 if grep -E 'system .*services|system .*launchctl' "$cli"; then
   fail "install must not start services"
 fi
