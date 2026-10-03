@@ -14,12 +14,16 @@ if grep -q 'var}/arqtos/reconciler.db' "$cli" || grep -q 'var/"arqtos"' "$cli"; 
   fail "formula uses a Homebrew-specific journal instead of layout state"
 fi
 
-# One supervisor: launch activate, not a competing brew services writer.
+# brew services owns the reconciler on the layout state root; launch activate owns sockets.
 grep -q 'arqtos launch activate' "$cli" || fail "caveats missing arqtos launch activate"
 grep -q 'arqtos launch stop' "$cli" || fail "caveats missing arqtos launch stop"
 grep -q 'arqtos launch install' "$cli" || fail "caveats missing arqtos launch install"
-if grep -q 'service do' "$cli"; then
-  fail "brew services still owns the reconciler; launch activate is the supervisor"
+if ! grep -q 'service do' "$cli"; then
+  fail "brew services does not own the reconciler"
+fi
+grep -A25 'service do' "$cli" | grep -q '.arqtos/state' || fail "service do does not use layout state"
+if grep -A25 'service do' "$cli" | grep -q 'var}/arqtos'; then
+  fail "service do still uses a Homebrew-specific journal"
 fi
 
 # Activation sequence uses the installed binary, not a checkout or plist edit.
@@ -57,8 +61,6 @@ test -f "$prefix/bin/arqtos-reconciler.pid" && fail "formula fixture started a s
 
 # Doctor and launch agree on the machine state journal, not var/arqtos.
 grep -q '.arqtos/state' "$cli" || fail "caveats do not name the layout journal"
-if grep -q 'brew services start arqtos-cli' "$cli"; then
-  fail "brew services start is still documented as the reconciler owner"
-fi
+grep -q 'brew services start arqtos-cli' "$cli" || fail "brew services start is not documented as the reconciler owner"
 
 echo "ok"
