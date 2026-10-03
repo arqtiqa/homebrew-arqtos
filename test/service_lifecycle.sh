@@ -37,10 +37,12 @@ printf 'dirty\n' >"$home/Arqtos/notes/wip.md"
 
 cat >"$fix/bin/arqtos-reconciler" <<'STUB'
 #!/bin/sh
+set +eu
 receipt="${ARQTOS_QUALIFY_RECEIPT:-}"
+test -n "$receipt" || exit 1
 printf '%s\n' "$0 $*" >>"$receipt"
 printf 'ready\n'
-trap 'printf stop\n >>"$receipt"; exit 0' TERM INT
+trap 'printf "%s\n" stop >>"$receipt"; exit 0' TERM INT
 while :; do
   sleep 0.05
 done
@@ -53,17 +55,47 @@ journal="$state/reconciler.db"
 repo="$state/canonical"
 intake="$state/intake"
 export ARQTOS_QUALIFY_RECEIPT="$receipt"
-"$fix/bin/arqtos-reconciler" --resident --journal="$journal" --repo="$repo" --intake="$intake" >/dev/null 2>&1 &
-pid=$!
-sleep 0.1
-kill -0 "$pid" || fail "isolated service start did not keep the reconciler resident"
-kill -TERM "$pid"
-wait "$pid" || true
-"$fix/bin/arqtos-reconciler" --resident --journal="$journal" --repo="$repo" --intake="$intake" >/dev/null 2>&1 &
-pid=$!
-sleep 0.1
-kill -TERM "$pid"
-wait "$pid" || true
+
+await_starts() {
+  want=$1
+  n=0
+  while test "$n" -lt 50; do
+    have=0
+    if test -s "$receipt"; then
+      have=$(grep -c -- '--resident' "$receipt" || true)
+    fi
+    if test "$have" -ge "$want"; then
+      return 0
+    fi
+    sleep 0.05
+    n=$((n + 1))
+  done
+  return 1
+}
+
+start_stub() {
+  want=$1
+  "$fix/bin/arqtos-reconciler" --resident --journal="$journal" --repo="$repo" --intake="$intake" >/dev/null 2>&1 &
+  pid=$!
+  n=0
+  while test "$n" -lt 20; do
+    kill -0 "$pid" 2>/dev/null && break
+    sleep 0.05
+    n=$((n + 1))
+  done
+  kill -0 "$pid" 2>/dev/null || fail "isolated service start did not keep the reconciler resident"
+  await_starts "$want" || fail "isolated service start did not record layout argv"
+}
+
+stop_stub() {
+  kill -TERM "$pid"
+  wait "$pid" 2>/dev/null || true
+}
+
+start_stub 1
+stop_stub
+start_stub 2
+stop_stub
 
 grep -q -- '--resident' "$receipt" || fail "lifecycle did not pass --resident"
 grep -q -- "--journal=$journal" "$receipt" || fail "lifecycle did not pass layout journal"

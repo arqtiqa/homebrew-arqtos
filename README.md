@@ -40,14 +40,16 @@ any time to preflight a floe.
 brew services stop arqtos-cli     # drop leftover writers; two writers on one state root is refused
 brew update
 brew upgrade arqtos-cli           # pre-0.3.58 installs: `brew upgrade arqtos` still works via the rename mapping
-arqtos launch activate            # reload the launch-plan supervisor
+brew services start arqtos-cli    # reconciler owner on ~/.arqtos/state (upgrade restarts a running service)
+arqtos launch activate            # socket peers: gateway, broker, connectors
 ```
 
-The reconciler supervisor is `arqtos launch activate`. Journal, repository
-and intake live under `~/.arqtos/state` — the same layout contract `arqtos
-doctor` and `arqtos launch plan` use. `brew services start` must not start
-a second writer. Gateway, broker and connectors ride the same activate
-step and are not started by install.
+`brew services start/stop/restart arqtos-cli` owns the reconciler. Journal,
+repository and intake live under `~/.arqtos/state` — the same layout
+contract `arqtos doctor` and `arqtos launch plan` use. `arqtos launch
+activate` owns the socket-activated peers. Never load `io.arqtos.reconciler`
+and a brew service against one state root. Gateway, broker and connectors
+are not started by install.
 
 `brew upgrade arqtos-cli` does not rewrite user configuration, worktrees, or
 the adopted Seed pin. A failed upgrade is recovered by reverting

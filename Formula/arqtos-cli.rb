@@ -62,33 +62,45 @@ class ArqtosCli < Formula
     end
   end
 
+  service do
+    run [
+      opt_bin/"arqtos-reconciler",
+      "--resident",
+      "--journal=#{Dir.home}/.arqtos/state/reconciler.db",
+      "--repo=#{Dir.home}/.arqtos/state/canonical",
+      "--intake=#{Dir.home}/.arqtos/state/intake",
+    ]
+    keep_alive true
+    run_at_load true
+    working_dir "#{Dir.home}/.arqtos/state"
+  end
+
   def caveats
     <<~EOS
       Line-5 ships through arqtos-cli. Do not brew install arqtos-core.
 
-      The reconciler supervisor is arqtos launch activate. Journal,
-      repository and intake are ~/.arqtos/state (layout.Journal), the
-      same paths doctor and launch plan probe. brew services must not
-      start a second writer on that state root.
-
-      Drop a leftover Homebrew reconciler or arqtosd before activate:
-
-        brew services stop arqtos-cli
+      brew services start/stop/restart arqtos-cli owns the reconciler.
+      Journal, repository and intake are ~/.arqtos/state (layout.Journal),
+      the same paths doctor and launch plan probe. arqtos launch activate
+      owns the socket-activated peers (gateway, broker, connectors).
 
       Never run arqtosd and arqtos-reconciler against one state root.
       Never load io.arqtos.reconciler and a brew service against one
       state root.
 
       Install does not start services. The sequence is install, enrol,
-      then activate with the installed binary:
+      then start the reconciler and the socket peers:
 
         brew install arqtos-cli
         arqtos init --machine <id> --principal <id>
         arqtos org join --home <control-repo> --inventory <file> --bootstrap=prompt
+        brew services start arqtos-cli
         arqtos launch install
         arqtos launch activate
 
-      Restart is arqtos launch activate again. Stop is arqtos launch stop.
+      Restart the reconciler with brew services restart arqtos-cli.
+      Stop it with brew services stop arqtos-cli. Socket peers restart
+      with arqtos launch activate and stop with arqtos launch stop.
       arqtos doctor reports initialized through runtime-ready against
       ~/.arqtos/state. Do not edit launchd plists by hand.
 
