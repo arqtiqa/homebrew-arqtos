@@ -16,10 +16,12 @@ grep -q 'arqtos launch stop' "$cli" || fail "caveats missing arqtos launch stop"
 grep -q 'brew install arqtos-cli' "$cli" || fail "caveats missing brew install"
 grep -q 'org join' "$cli" || fail "caveats missing org join"
 
-# Leftover brew-service writers are stopped; activate is the supervisor.
+# brew services start/stop/restart owns the reconciler; activate owns sockets.
 grep -q 'brew services stop arqtos-cli' "$cli" || fail "missing brew services stop"
-if grep -q 'brew services start arqtos-cli' "$cli"; then
-  fail "brew services start is still documented as the reconciler owner"
+grep -q 'brew services start arqtos-cli' "$cli" || fail "missing brew services start"
+grep -q 'brew services restart arqtos-cli' "$cli" || fail "missing brew services restart"
+if ! grep -q 'service do' "$cli"; then
+  fail "formula missing service do"
 fi
 
 # Formula-time units stay socket-only; enrol happens after brew install.

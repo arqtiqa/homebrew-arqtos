@@ -33,9 +33,15 @@ for name in arqtos_0.5.4_darwin_arm64.tar.gz arqtos_0.5.4_darwin_amd64.tar.gz \
   grep -q "$want" "$cli" || fail "arqtos-cli sha256 for $name does not match checksums.txt"
 done
 
-# Launch activate owns the reconciler. brew services must not register a writer.
-if grep -q 'service do' "$cli"; then
-  fail "arqtos-cli must not register a brew service writer"
+# brew services owns the reconciler; launch activate owns socket peers.
+if ! grep -q 'service do' "$cli"; then
+  fail "arqtos-cli missing brew service for the reconciler"
+fi
+grep -A25 'service do' "$cli" | grep -q 'arqtos-reconciler' || fail "service do does not supervise arqtos-reconciler"
+grep -A25 'service do' "$cli" | grep -q -- '--resident' || fail "service do missing --resident"
+grep -A25 'service do' "$cli" | grep -q '.arqtos/state' || fail "service do does not use layout state"
+if grep -A25 'service do' "$cli" | grep -E 'arqtos-gateway|arqtos-broker|arqtos-connectors'; then
+  fail "service do started a socket-activated peer"
 fi
 grep -q 'arqtos launch activate' "$cli" || fail "formula must document launch activate"
 grep -q 'brew services .*arqtos-core' "$cli" && fail "brew services must not use arqtos-core"

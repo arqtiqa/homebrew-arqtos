@@ -27,12 +27,12 @@ if grep -E 'system .*services|system .*launchctl' "$cli"; then
   fail "upgrade must not start services in the install hook"
 fi
 
-# Legacy-to-line-5 transition: stop leftover brew writers; launch activate owns runtime.
+# Legacy-to-line-5: brew services owns the reconciler; launch activate owns sockets.
 grep -q 'brew services stop arqtos-cli' "$cli" || fail "missing brew services stop arqtos-cli"
 grep -q 'arqtos launch activate' "$cli" || fail "missing launch activate supervisor"
 grep -q 'brew services .*arqtos-core' "$cli" && fail "brew services must not use arqtos-core"
-if grep -q 'service do' "$cli"; then
-  fail "arqtos-cli must not keep a competing brew service"
+if ! grep -q 'service do' "$cli"; then
+  fail "arqtos-cli missing brew service for the reconciler"
 fi
 grep -q 'state root' "$cli" || fail "missing two-writers/state-root warning"
 
