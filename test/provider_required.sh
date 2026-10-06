@@ -20,12 +20,12 @@ fi
 # Advertised inventory for the candidate, pinned by archive SHA.
 test -f "$inv" || fail "missing advertised provider inventory"
 grep -q 'libexec/onepassword' "$inv" || fail "inventory does not advertise libexec/onepassword"
-grep -q '0.5.5' "$inv" || fail "inventory is not pinned to candidate 0.5.5"
+grep -q '0.5.6' "$inv" || fail "inventory is not pinned to candidate 0.5.6"
 grep -q 'darwin' "$inv" || fail "inventory missing darwin candidate"
 grep -q 'linux' "$inv" || fail "inventory missing linux candidate"
-grep -q 'v0.5.5.checksums.txt' "$inv" || fail "inventory does not pin archive checksums"
-grep -q 'version "0.5.5"' "$cli" || fail "formula version pin for #732 is not 0.5.5"
-test -f "$root/test/v0.5.5.checksums.txt" || fail "missing v0.5.5 checksum pin for #732"
+grep -q 'v0.5.6.checksums.txt' "$inv" || fail "inventory does not pin archive checksums"
+grep -q 'version "0.5.6"' "$cli" || fail "formula version pin for #732 is not 0.5.6"
+test -f "$root/test/v0.5.6.checksums.txt" || fail "missing v0.5.6 checksum pin for #732"
 
 # Install requires the advertised path; discovery is libexec, not an env workaround.
 grep -q 'libexec.install provider' "$cli" || grep -q 'libexec.install "libexec/onepassword"' "$cli" \

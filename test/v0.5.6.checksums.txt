@@ -1,0 +1,4 @@
+02688bcaf7ba611a5bebf46496537d5325f291ea91859b089ffc002be5f656fb  arqtos_0.5.6_linux_arm64.tar.gz
+8880bbfed36b9393303147b32e206cc76f3d8e4fd40fb5802b5990c1ee64a287  arqtos_0.5.6_darwin_amd64.tar.gz
+bcca2ce9a746abc4b1dd92e2e6b82902f6be2cc07c3dbabfe4dd57db598b8b9d  arqtos_0.5.6_darwin_arm64.tar.gz
+ef372f907b48c0aa9b137a2fd02900d8d4b44d791bb6cce12c7625eab19cf453  arqtos_0.5.6_linux_amd64.tar.gz
