@@ -38,8 +38,8 @@ grep -q 'revert the formula' "$cli" || fail "missing formula-revert recovery"
 grep -q 'never' "$cli" && grep -q 'tag' "$cli" || fail "missing never-delete-the-tag recovery"
 
 # Record the candidate pin used by #732; this Story does not promote a cut.
-grep -q 'version "0.5.6"' "$cli" || fail "formula version pin for #732 is not 0.5.6"
-test -f "$root/test/v0.5.6.checksums.txt" || fail "missing v0.5.6 checksum pin for #732"
+grep -q 'version "0.5.7"' "$cli" || fail "formula version pin for #732 is not 0.5.7"
+test -f "$root/test/v0.5.7.checksums.txt" || fail "missing v0.5.7 checksum pin for #732"
 
 # Isolated prefix: authored enrol, dirty notes and a dummy seal survive a
 # binary-only layout; no second writer and no Homebrew journal tree.
