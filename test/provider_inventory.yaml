@@ -1,8 +1,8 @@
-# Advertised auxiliary credential-provider inventory for candidate 0.5.11.
+# Advertised auxiliary credential-provider inventory for candidate 0.5.12.
 # Provider bytes are pinned by the platform archive SHA in
-# test/v0.5.11.checksums.txt. This file is not a stable cut.
-version: "0.5.11"
-archive_pins: test/v0.5.11.checksums.txt
+# test/v0.5.12.checksums.txt. This file is not a stable cut.
+version: "0.5.12"
+archive_pins: test/v0.5.12.checksums.txt
 aux:
   - name: onepassword
     path: libexec/onepassword
