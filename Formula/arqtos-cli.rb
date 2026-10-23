@@ -22,23 +22,23 @@
 class ArqtosCli < Formula
   desc "Operating layer for specialised professional teams"
   homepage "https://arqtos.io"
-  version "0.5.12"
+  version "0.5.13"
 
   if OS.mac?
     if Hardware::CPU.arm?
       url "https://github.com/arqtiqa/homebrew-arqtos/releases/download/v#{version}/arqtos_#{version}_darwin_arm64.tar.gz"
-      sha256 "57901129dc0b01d52b7489224962b5fa902de5d2cf184764b958d9d2a51b02af"
+      sha256 "21562028e56a03ca6170abc4700c651d0b526b20ec8bf2908cab09a013724660"
     else
       url "https://github.com/arqtiqa/homebrew-arqtos/releases/download/v#{version}/arqtos_#{version}_darwin_amd64.tar.gz"
-      sha256 "84ffe749212414a35f19f37023302dc793e2eddf67c6bf4b411ecb023eed8666"
+      sha256 "e90ee90e08726010882f039711f48784db308c9cb6b283bd595a35719738bfdb"
     end
   elsif OS.linux?
     if Hardware::CPU.arm?
       url "https://github.com/arqtiqa/homebrew-arqtos/releases/download/v#{version}/arqtos_#{version}_linux_arm64.tar.gz"
-      sha256 "7f7e05a1ae6935b7802672309fb48b0fa6029f483ac4c99d9b800cdb205eddb8"
+      sha256 "9ea1d05e5a2a6173c7bf485905d439d8faee665abf5b1a3ac1bb1d3204ba2406"
     else
       url "https://github.com/arqtiqa/homebrew-arqtos/releases/download/v#{version}/arqtos_#{version}_linux_amd64.tar.gz"
-      sha256 "1d6885ed496d88942e25a4074af143c6e5957e69de5379ea7cb2650515eb42c1"
+      sha256 "7d4e878eecfe12301f6bed54217f9c753d14fb018a769eebca39b2ede157ae05"
     end
   end
 
@@ -164,7 +164,7 @@ class ArqtosCli < Formula
     assert_match "doctor", help
     refute_match "install-terminal-profiles", help
 
-    focus_help = shell_output("#{bin}/arqtos focus --help")
+    focus_help = shell_output("#{bin}/arqtos focus --help 2>&1", 2)
     assert_match "--json", focus_help
     refute_match "--dry-run", focus_help
 
