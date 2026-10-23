@@ -10,6 +10,10 @@ test -f "$cli" || fail "arqtos-cli formula missing"
 grep -q 'service do' "$cli" || fail "formula missing service do"
 
 block="$(awk '/service do/,/^  end$/' "$cli")"
+upgrade="$(awk '/After brew upgrade arqtos-cli/,/A failed upgrade/' "$cli")"
+echo "$upgrade" | grep -q 'brew services restart arqtos-cli' || fail "upgrade caveats omit the reconciler restart"
+echo "$upgrade" | grep -q 'arqtos launch activate' || fail "upgrade caveats omit launch activate"
+
 echo "$block" | grep -q 'arqtos-reconciler' || fail "service do does not run arqtos-reconciler"
 echo "$block" | grep -q -- '--resident' || fail "service do missing --resident"
 echo "$block" | grep -q -- '--journal=' || fail "service do missing --journal"
