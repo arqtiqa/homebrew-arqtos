@@ -114,6 +114,15 @@ class ArqtosCli < Formula
       setting ARQTOS_CREDENTIAL_CONNECTOR; that variable remains an
       explicit override. A missing or incompatible provider fails closed.
 
+      After brew upgrade arqtos-cli the old reconciler keeps running until
+      restarted, and a restart is the only thing that replaces it. Run:
+
+        brew services restart arqtos-cli
+        arqtos launch activate
+
+      arqtos focus, converge and sync refuse by name while the running
+      reconciler is an older build than the CLI.
+
       A failed upgrade: revert the formula (version and sha256) to the
       last good release; never delete the tag.
 
